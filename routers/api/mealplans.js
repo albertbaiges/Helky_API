@@ -35,8 +35,11 @@ router.get("/:planID", async (req, res) => {
 
 });
 
-router.post("/:patientID", async (req, res) => {
-    res.json({error: "Not implemented yet"})
+router.post("/:planID", async (req, res) => {
+    const {planID} = req.params;
+    console.log("recibimos el body", req.body)
+    const data = await mealPlansController.update(planID, req.body);
+    res.json(data);
 });
 
 //!Add delete for this and other routers

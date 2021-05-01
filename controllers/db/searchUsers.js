@@ -116,7 +116,7 @@ async function update(userID, update) {
 
     // console.log(input)
     const response = await updateItem(input);
-    const attributes = Converter.unmarshall(response.Attributes);
+    const attributes = Converter.unmarshall(response.Attributes); //!MOver esto dentro
     return attributes;
 }
 

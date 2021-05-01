@@ -12,6 +12,23 @@ async function getMealPlan(planID) {
     }
 }
 
+
+async function update(planID, data) {
+
+    const update = {
+        weekdays: {
+            [data.day]: {
+                [data.meal]: data.info
+            }
+        }
+    }
+
+    const response = await plans.update(planID, update);
+    console.log("repuesta", response);
+    return response.weekdays;
+}
+
 module.exports = {
-    getMealPlan
+    getMealPlan,
+    update
 }
