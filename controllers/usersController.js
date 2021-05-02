@@ -13,6 +13,21 @@ async function getUser(userID) {
     return user;
 }
 
+
+async function getDisorders(userID) {
+    const projection = ["userID", "username", "disorders"];
+    const userDisorders = await users.getFromUser(userID, projection);
+    return userDisorders;
+}
+
+async function getMedics(userID) {
+    const projection = ["userID", "username", "medics"];
+    const userMedics = await users.getFromUser(userID, projection);
+    return userMedics;
+}
+
 module.exports = {
-    getUser
+    getUser,
+    getDisorders,
+    getMedics
 }
