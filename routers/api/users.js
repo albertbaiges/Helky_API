@@ -25,5 +25,11 @@ router.get("/:userID/medics", async (req, res) => {
     res.json(data);
 });
 
+router.get("/:userID/centers", async (req, res) => {
+    console.log("ha llegado a este endpoint")
+    const {userID} = req.params;
+    const data = await usersController.getCenters(userID);
+    res.json(data);
+});
 
 module.exports = router;
