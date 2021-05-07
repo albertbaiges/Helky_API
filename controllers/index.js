@@ -8,6 +8,7 @@ const mealPlansController = require("./mealplansController");
 const medicsController = require("./medicsController");
 const medicinesController = require("./medicinesController");
 const usersController = require("./usersController");
+const centersController = require("./centersController");
 
 module.exports = {
     authController,
@@ -17,5 +18,6 @@ module.exports = {
     mealPlansController,
     medicsController,
     medicinesController,
-    usersController
+    usersController,
+    centersController
 }
