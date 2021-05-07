@@ -42,8 +42,24 @@ router.post("/:planID", async (req, res) => {
     res.json(data);
 });
 
-//!Add delete for this and other routers
+router.get("/:planID/medicines", async (req, res) => {
+    const {planID} = req.params;
+    console.log("vamos a pedir los medicamentos")
+    const data = await mealPlansController.getMedicines(planID);
+    res.json(data);
+});
 
+
+router.patch("/:planID/medicines", async (req, res) => {
+    const {planID} = req.params;
+    const body = req.body;
+    try{
+        const data = await mealPlansController.updateMedicines(planID, body);
+        res.json({data});
+    } catch(err) {
+        res.json({error: "error", message: err.message});
+    }
+});
 
 module.exports = router;
 
