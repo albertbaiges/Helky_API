@@ -32,4 +32,11 @@ router.get("/:userID/centers", async (req, res) => {
     res.json(data);
 });
 
+router.patch("/:userID", async (req, res) => {
+    const {userID} = req.params;
+    const data = await usersController.update(userID, req.body);
+    res.json(data);
+});
+
+
 module.exports = router;

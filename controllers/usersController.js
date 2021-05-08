@@ -1,9 +1,7 @@
 
 
-
-
-
 const {Converter, users} = require("./db");
+const cryptography = require("../utils/cryptography");
 
 async function getUser(userID) {
     const projection = ["userID", "username", "utype", "medics", "email", "medicines", "disorders"];
@@ -32,9 +30,44 @@ async function getCenters(userID) {
     return userMedics;
 }
 
+async function update(userID, updateValue) {
+    const projection = ["userID", "username", "medics", "centers"];
+    const userData = await users.getFromUser(userID, projection);
+    console.log(userData)
+
+    //Handle a password update 
+    if(updateValue.password) {
+        updateValue.salt = cryptography.createSalt();
+        updateValue.password = cryptography.encrypt(updateValue.password, updateValue.salt);
+    }
+    // 
+
+    const response = await users.update(userID, updateValue);
+
+    delete updateValue.salt;
+    delete updateValue.pasword;
+    
+    const medic_centerUpdate = {
+        patients: {
+            [userID]: updateValue
+        }
+    }
+    userData.medics.forEach(async medic => {
+        await users.update(medic, medic_centerUpdate);
+    });
+
+    userData.centers.forEach(async center => {
+        await users.update(center, medic_centerUpdate);
+    });
+
+    const returnValue = {completed: "Eveything has been updated"}
+    return returnValue
+}
+
 module.exports = {
     getUser,
     getDisorders,
     getMedics,
-    getCenters
+    getCenters,
+    update
 }
