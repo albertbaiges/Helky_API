@@ -31,7 +31,7 @@ async function getCenters(userID) {
 }
 
 async function update(userID, updateValue) {
-    const projection = ["userID", "username", "medics", "centers"];
+    let projection = ["userID", "username", "patients", "medics", "centers", "utype"];
     const userData = await users.getFromUser(userID, projection);
     console.log(userData)
 
@@ -47,21 +47,56 @@ async function update(userID, updateValue) {
     delete updateValue.salt;
     delete updateValue.password;
     
-    const medic_centerUpdate = {
-        patients: {
-            [userID]: updateValue
+    let relatedUsersUpdate;
+    console.log("datos del usuario", userData)
+    
+    if (userData.utype === "patient") {
+        relatedUsersUpdate = {
+            patients: {
+                [userID]: updateValue
+            }
+        }
+    } else if (userData.utype === "medic") {
+        relatedUsersUpdate = {
+            medics: {
+                [userID]: updateValue
+            }
+        }
+    } else if (userData.utype === "center") {
+        relatedUsersUpdate = {
+            centers: {
+                [userID]: updateValue
+            }
         }
     }
-    userData.medics.forEach(async medic => {
-        await users.update(medic, medic_centerUpdate);
-    });
 
-    userData.centers.forEach(async center => {
-        await users.update(center, medic_centerUpdate);
-    });
+    if (Object.keys(updateValue).length !== 0) {
+        if (userData.patients) {
+            const patients = Object.values(userData.patients);
+            patients.forEach(async patient => {
+                await users.update(patient.userID, relatedUsersUpdate);
+            });
+        }
+        
+        if (userData.medics) {
+            const medics = Object.values(userData.medics);
+            medics.forEach(async medic => {
+                await users.update(medic.userID, relatedUsersUpdate);
+            });
+        }
+        
+        if (userData.centers) {
+            const centers = Object.values(userData.centers);
+            centers.forEach(async center => {
+                await users.update(center.userID, relatedUsersUpdate);
+            });       
+        }
+    }
+        
+    projection.push("disorders");
+    const data = await users.getFromUser(userID, projection);
 
-    const returnValue = {completed: "Eveything has been updated"}
-    return returnValue
+    return data;
 }
 
 module.exports = {
