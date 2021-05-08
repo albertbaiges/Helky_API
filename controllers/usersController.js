@@ -45,7 +45,7 @@ async function update(userID, updateValue) {
     const response = await users.update(userID, updateValue);
 
     delete updateValue.salt;
-    delete updateValue.pasword;
+    delete updateValue.password;
     
     const medic_centerUpdate = {
         patients: {
