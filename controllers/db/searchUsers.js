@@ -123,8 +123,37 @@ async function update(userID, update) {
 async function deleteField(userID, field) {
 }
 
+
+async function getUsers(filter) {
+
+    const {updateExpressions: filterExpressions, updateNames: filterNames, updateValues: filterValues} = buildUpdate(filter);
+    const filterValuesMarsh = Converter.marshall(filterValues);
+    wildcardFormat = filterExpressions.map(filterExpression => {
+        const formated = filterExpression.replace("=", ",");
+        return `contains(${formated})`;
+    });
+    const wildcardData = wildcardFormat.join(" AND ");
+
+    const input = {
+        TableName: "users",
+        Limit: 10,
+        ProjectionExpression: "userID, username, email, utype",
+        FilterExpression: wildcardData,
+        ExpressionAttributeValues: filterValuesMarsh
+    }
+
+    if(Object.keys(filterNames).length !== 0) {
+        input.ExpressionAttributeNames = filterNames;
+    }
+
+    const data = await scanTable(input);
+    return data;
+
+}
+
 module.exports = {
     getFromUser,
     queryUser,
-    update
+    update,
+    getUsers
 }

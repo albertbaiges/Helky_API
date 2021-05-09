@@ -11,6 +11,7 @@ const medics = require("./medics");
 const medicines = require("./medicines");
 const users = require("./users");
 const centers = require("./centers");
+const searches = require("./searches");
 
 module.exports = {
     patients,
@@ -20,5 +21,6 @@ module.exports = {
     medics,
     medicines,
     users,
-    centers
+    centers,
+    searches
 }
