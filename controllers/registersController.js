@@ -9,7 +9,8 @@ function getSupported() {
 }
 
 async function getRegister(registerID) {
-    const fields = ["registerID", "disorder", "user"];
+    const fields = ["registerID", "disorder", "patient"];
+    console.log("procesando este")
     try {
         const data = await registers.getFromRegister(registerID, fields);
         return data;
@@ -150,17 +151,19 @@ async function getNewTracking(registerID, month, year) {
         year = date.getFullYear();
     }
 
-    const projection = [`tracking.${year}.${month}`];
-    console.log(projection)
+    const projection = [`tracking.${year}.${month}`, "patient"];
     const data = await registers.get(registerID, projection);
-
     return data;
 }
 
 
 async function addTrackingEventNew(registerID, event) {
-    const {year, month, day, value} = event;
-    console.log(registerID, year, month, day, value)
+    // const {year, month, day, value} = event;
+    const value = event;
+    const date = new Date(event.timestamp);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
 
     // Check if we have that month and day on the register
     const tracking = `tracking.${year}.${month}.${day}`;

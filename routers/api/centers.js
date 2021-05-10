@@ -17,6 +17,16 @@ router.get("/:centerID/medics", async (req, res) => {
     res.send(data);
 });
 
+router.post("/:centerID/signmedic", async (req, res) => {
+    try {
+        const {centerID} = req.params;
+        const medic = req.body;
+        const data = await centersController.registerMedic(centerID, medic);
+        res.send(data);
+    } catch (error) {
+        return res.status(400).json({"Error": error.message});
+    }
+});
 
 
 module.exports = router;

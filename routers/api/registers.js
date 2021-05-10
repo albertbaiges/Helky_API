@@ -67,6 +67,9 @@ router.get("/:registerID/tracking", async (req, res) => {
     const {registerID} = req.params;
     const {month, year} = req.query;
     const data = await registersController.getNewTracking(registerID, month, year);
+    if(!data.tracking) {
+        data.message = "There are no registers for this date"
+    }
     res.json(data);
 });
 

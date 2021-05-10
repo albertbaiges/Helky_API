@@ -2,22 +2,24 @@
 
 const {Converter, getItem, putItem, updateItem} = require("./dynamoDB");
 
-async function getFromRegister(registerID, projectionArr) {
+async function getFromRegister(registerID, projection) {
     const registerIDMarsh = Converter.marshall({registerID});
+
+    let {projectionExpression, expressionAttributeNames} = buildProjection(projection);
+
+
     const input = {
         TableName: "registers",
-        Key: registerIDMarsh
+        Key: registerIDMarsh,
+        ProjectionExpression: projectionExpression,
     }
-    if (projectionArr.includes("user")) { //! user is a received keyword
-        projectionArr.splice(projectionArr.indexOf("user"), 1, "#user");
-        input.ExpressionAttributeNames = {"#user": "user"};
+
+    if (Object.keys(expressionAttributeNames).length !== 0) {
+        input.ExpressionAttributeNames = expressionAttributeNames
     }
-    const projection = projectionArr.reduce((prev, curr, i) => prev + (i !== 0 ? ", ": "") + curr, "");
-    input.ProjectionExpression = projection
 
     try {
-        const data = await getItem(input); //! must check if data is not undefined
-        data.date = new Date(2021, 2); //! Set to correcponding moth-year (date) of the tracking
+        const data = await getItem(input);
         return data;
     } catch (err) {
         console.error("Something went wrong", err);

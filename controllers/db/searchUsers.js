@@ -1,6 +1,6 @@
 
 
-const {Converter, getItem, scanTable, updateItem} = require("./dynamoDB");
+const {Converter, getItem, scanTable, updateItem, putItem} = require("./dynamoDB");
 
 async function getFromUser(userID, projectionArr) {
     const userIDMarsh = Converter.marshall({userID});
@@ -73,32 +73,25 @@ function buildUpdate(update) {
 }
 
 
-async function update(userID, update) {
+async function update(userID, update, manual) {
+
     const userIDMarsh = Converter.marshall({userID});
-    console.log("datos a actualizar****", update)
-    // let updateExpressions = [];
-    // const updateValues = {};
 
-    // for (const key in update) {
-    //     console.log(key, update[key].constructor)
-    //     updateExpressions.push(`${key}=:${key}`);
-    //     updateValues[`:${key}`] = update[key];
-    // }
+    let updateExpressionData, updateValues, updateNames;
+    if(manual) {
+        updateExpressionData = update.updateExpression;
+        updateValues = update.updateValues;
+        updateNames = update.updateNames;
+    } else {
+        const result = buildUpdate(update);
+        console.log("resultado build", result);
+        updateExpressionData = result.updateExpressions.join();
+        updateNames = result.updateNames;
+        updateValues = result.updateValues;
+    }
 
-    
-    // const updateExpressionData = updateExpressions.join();
-    // const updateValuesMarsh = Converter.marshall(updateValues);
-
-    const {updateExpressions, updateNames, updateValues} = buildUpdate(update);
-    const updateExpressionData = updateExpressions.join();
-    // console.log("Update expression array", updateExpressions);
-    // console.log("Update expression final", updateExpressionData);
-    // console.log("Update names final", updateNames);
-    // console.log("Update values final", updateValues)
     const updateValuesMarsh = Converter.marshall(updateValues);
 
-    // console.log(updateExpressionData);
-    // console.log(updateValuesMarsh);
 
     const input = {
         TableName: "users",
@@ -108,20 +101,16 @@ async function update(userID, update) {
         ReturnValues: "UPDATED_NEW"
     }
 
-    console.log("los nombres a actualizar son", updateNames);
 
     if(Object.keys(updateNames).length !== 0) {
         input.ExpressionAttributeNames = updateNames;
     }
 
-    // console.log(input)
     const response = await updateItem(input);
     const attributes = Converter.unmarshall(response.Attributes); //!MOver esto dentro
     return attributes;
 }
 
-async function deleteField(userID, field) {
-}
 
 
 async function getUsers(filter) {
@@ -151,9 +140,22 @@ async function getUsers(filter) {
 
 }
 
+
+
+async function put(user) {
+    const userMarsh = Converter.marshall(user);
+    const input = {
+        TableName: "users",
+        Item: userMarsh,
+    };
+    const response = await putItem(input);
+    return response;
+}
+
 module.exports = {
     getFromUser,
     queryUser,
     update,
-    getUsers
+    getUsers,
+    put
 }

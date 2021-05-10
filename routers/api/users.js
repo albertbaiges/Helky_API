@@ -38,5 +38,23 @@ router.patch("/:userID", async (req, res) => {
     res.json(data);
 });
 
+router.get("/:userID/notifications", async (req, res) => {
+    const {userID} = req.params;
+    const data = await usersController.getNotifications(userID);
+    res.json(data);
+});
+
+
+router.post("/:userID/relations", async (req, res) => {
+    try {
+        const {userID} = req.params;
+        const relationAction = req.body;
+        const data = await usersController.handleRelation(userID, relationAction);
+        res.json(data);
+    } catch (error) {
+        return res.status(400).json({"Error": error.message});
+    }
+});
+
 
 module.exports = router;

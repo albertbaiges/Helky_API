@@ -85,19 +85,15 @@ app.post("/login", async (req, res) => {
     }
 });
 
-app.route("/register")
-    .get((req, res) => {
-        res.send("have to register");
-    })
-    .post((req, res) => {
-        // db.registerUser(req.body.username, req.body.password)
-        //     .then(obj => {
-        //         if (obj.status === 0) {
-        //             obj.message = "User already taken";
-        //         } 
-        //         res.json(obj);
-        //     });
-    });
+app.post("/signup", async (req, res) => {
+    try {
+        const user = req.body;
+        const data = await authController.registerUser(user);
+        res.json(data);
+    } catch (error) {
+        return res.status(400).json({"Error": error.message});
+    }
+});
 
 
 function pathLogger(req, res, next){

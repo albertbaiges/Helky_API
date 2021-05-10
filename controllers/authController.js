@@ -34,49 +34,59 @@ async function checkLogin(username, password) {
 }
 
 
-async function registerUser(username, password){
-    let data = {status: 0};
+class User {
+    constructor(userID, username, email, password) {
+        this.userID = String(userID);
+        this.username = username;
+        this.email = email;
 
-    const user = await userIsRegistered(username);
-    if (!user.registered) {
-        console.log("creating a new user")
         const salt = crypto.createSalt();
-        const hashedPassword = crypto.encrypt(password, salt);
-        try {
-            const put_params = {
-                TableName: "users",
-                Item: {
-                    userID: {
-                        S: String(++lastId)
-                    },
-                    username: {
-                        S: username
-                    },
-                    email: {
-                        S: "unkown" //TODO
-                    },
-                    password: {
-                        S: hashedPassword
-                    },
-                    salt: {
-                        S: salt
-                    },
-                    api_token: {
-                        S: "No-Access" //TODO function to generate API keys
-                    }
-                }
-            };
+        this.salt = salt;
+        
+        const encryptedPassword = crypto.encrypt(password, this.salt);
 
-            const putCommand = new DDB.PutItemCommand(put_params);
-            const response = await client.send(putCommand);
-            // Should use response to verify
-            data.status = 1;// Maybe should use http status code of response to verify or something to verify
-            data.username = username;
-        } catch (err) {
-            console.error("Something went wrong", err);
-        }
+        this.password = encryptedPassword;
     }
-    return data;
+}
+
+class Patient extends User {
+    constructor(userID, username, email, password) {
+        super(userID, username, email, password);
+        this.utype = "patient";
+        this.disorders = [];
+        this.medicines = [];
+        this.medics = {};
+        this.centers = {};
+    }
+}
+
+async function registerUser(user){
+
+    //Verificar que no haya ya un usuario con este email
+
+    const query = "email = :email";
+    const queryParams = {
+        ":email": user.email
+    }
+    const fields = ["userID", "username", "email"];
+    const previousUser = await users.queryUser(query, queryParams, fields);
+    console.log(previousUser)
+
+    if(previousUser.length !== 0) {
+        throw new Error("Email in use")
+    }
+    
+    const patient = new Patient(10, user.username, user.email, user.password);
+
+    //PutItem
+
+    await users.put(patient);
+
+    const projection = ["userID", "username", "email", "utype"];
+
+    const signedUser = await users.getFromUser(patient.userID, projection);
+    
+    return signedUser;
 }
 
 
