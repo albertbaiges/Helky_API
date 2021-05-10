@@ -65,7 +65,8 @@ router.get("/:registerID", async (req, res) => {
 router.get("/:registerID/tracking", async (req, res) => {
     console.log("Nuevo endpoint tracking registros");
     const {registerID} = req.params;
-    const data = await registersController.getNewTracking(registerID);
+    const {month, year} = req.query;
+    const data = await registersController.getNewTracking(registerID, month, year);
     res.json(data);
 });
 

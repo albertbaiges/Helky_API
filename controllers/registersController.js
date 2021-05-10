@@ -140,17 +140,18 @@ async function addTrackingEvent(registerID, tracking) {
 
 async function getNewTracking(registerID, month, year) {
     //month and year are used to return specific trackings, by default we get current ones
+    console.log("Se quiere el mes", month, "y año", year)
     const date = new Date();
     if(!month) {
-        month = date.getMonth();
+        month = date.getMonth() + 1;
     }
 
     if(!year) {
         year = date.getFullYear();
     }
 
-    const projection = ["tracking.2021"];
-
+    const projection = [`tracking.${year}.${month}`];
+    console.log(projection)
     const data = await registers.get(registerID, projection);
 
     return data;
@@ -214,7 +215,7 @@ async function addTrackingEventNew(registerID, event) {
             tracking: {
                 [year]: {
                     [month]: {
-                        stamp: (new Date(year, month)).toISOString(),
+                        stamp: (new Date(year, month-1)).toISOString(),
                         [day]: [value]
                     }
                 }
