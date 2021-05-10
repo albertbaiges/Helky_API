@@ -2,6 +2,7 @@
 
 const {Converter, users} = require("./db");
 const cryptography = require("../utils/cryptography");
+const registersController = require("./registersController");
 
 async function getUser(userID) {
     const projection = ["userID", "username", "utype", "medics", "email", "medicines", "disorders"];
@@ -31,16 +32,41 @@ async function getCenters(userID) {
 }
 
 async function update(userID, updateValue) {
-    let projection = ["userID", "username", "patients", "medics", "centers", "utype"];
+    let projection = ["userID", "username", "patients", "medics", "centers", "utype", "disorders"];
     const userData = await users.getFromUser(userID, projection);
-    console.log(userData)
+    // console.log(userData)
 
     //Handle a password update 
     if(updateValue.password) {
         updateValue.salt = cryptography.createSalt();
         updateValue.password = cryptography.encrypt(updateValue.password, updateValue.salt);
     }
-    // 
+    //
+    
+    //Handle disorders update
+    if(updateValue.disorders) {
+        const updatedDisorders = [];
+        for (let disorder of updateValue.disorders) {
+            console.log("Enfermedad", disorder)
+            const storedDisorder = userData.disorders.find(storedDisorder => {
+                return storedDisorder.type === disorder.type && storedDisorder.family === disorder.type;
+            });
+            
+            if (storedDisorder) {
+                updatedDisorders.push(storedDisorder);
+            } else {
+                if (registersController.getSupported().includes(updateValue)) {
+                    disorder.registerID = null;
+                }
+                updatedDisorders.push(disorder);
+            }
+        }
+        updateValue.disorders = updatedDisorders;
+        console.log("Los nuevos disorders son", updateValue.disorders)
+
+    }
+
+
 
     const response = await users.update(userID, updateValue);
 
@@ -48,7 +74,6 @@ async function update(userID, updateValue) {
     delete updateValue.password;
     
     let relatedUsersUpdate;
-    console.log("datos del usuario", userData)
     
     if (userData.utype === "patient") {
         relatedUsersUpdate = {
@@ -70,6 +95,8 @@ async function update(userID, updateValue) {
         }
     }
 
+    console.log("relatedusers update", relatedUsersUpdate);
+
     if (Object.keys(updateValue).length !== 0) {
         if (userData.patients) {
             const patients = Object.values(userData.patients);
@@ -77,14 +104,17 @@ async function update(userID, updateValue) {
                 await users.update(patient.userID, relatedUsersUpdate);
             });
         }
-        
+
+        console.log("update para los otros", relatedUsersUpdate)
+
         if (userData.medics) {
             const medics = Object.values(userData.medics);
             medics.forEach(async medic => {
                 await users.update(medic.userID, relatedUsersUpdate);
             });
         }
-        
+
+
         if (userData.centers) {
             const centers = Object.values(userData.centers);
             centers.forEach(async center => {
@@ -93,7 +123,7 @@ async function update(userID, updateValue) {
         }
     }
         
-    projection.push("disorders");
+
     const data = await users.getFromUser(userID, projection);
 
     return data;

@@ -67,10 +67,41 @@ async function updateMedicines(planID, data) {
     return response;
 }
 
+async function getActivities(planID) {
+    const fields = ["patient", "weekdays"];
+    try {
+        const data = await plans.get(planID, fields);
+        // console.log("datos obtenidos", data.weekdays)
+        for(let day in data.weekdays){
+            data.weekdays[day] = {
+                day,
+                activities: data.weekdays[day].activities
+            }
+        }
+        return data;
+    } catch (error) {
+        console.error("Something went wrong", error);
+    }
+}
+
+async function updateActivities(planID, data) {
+    const update = {
+        weekdays: {
+            [data.day]: {
+                activities: data.activities
+            }
+        }
+    }
+    const response = await plans.update(planID, update);
+    return response.weekdays;
+}
+
 
 module.exports = {
     getMealPlan,
     getMedicines,
     update,
-    updateMedicines
+    updateMedicines,
+    getActivities,
+    updateActivities
 }

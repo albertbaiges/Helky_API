@@ -16,7 +16,7 @@ async function get(planID, projectionArr) {
 
     try {
         const response = await getItem(input); //!Can directly return the promise, without await
-        console.log("obtenemos este item", response)
+        // console.log("obtenemos este item", response)
         return response;
     } catch (err) {
         console.error("Something went wrong", err);

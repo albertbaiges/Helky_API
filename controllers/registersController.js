@@ -4,6 +4,9 @@ const {registers, Converter, users} = require("./db");
 
 let lastRegisterID = 1;
 
+function getSupported() {
+    return ["Diabetes", "High Blood Preassure"];
+}
 
 async function getRegister(registerID) {
     const fields = ["registerID", "disorder", "user"];
@@ -135,9 +138,137 @@ async function addTrackingEvent(registerID, tracking) {
 
 
 
+async function getNewTracking(registerID, month, year) {
+    //month and year are used to return specific trackings, by default we get current ones
+    const date = new Date();
+    if(!month) {
+        month = date.getMonth();
+    }
+
+    if(!year) {
+        year = date.getFullYear();
+    }
+
+    const projection = ["tracking.2021"];
+
+    const data = await registers.get(registerID, projection);
+
+    return data;
+}
+
+
+async function addTrackingEventNew(registerID, event) {
+    const {year, month, day, value} = event;
+    console.log(registerID, year, month, day, value)
+
+    // Check if we have that month and day on the register
+    const tracking = `tracking.${year}.${month}.${day}`;
+    let projection = ["registerID", "patient", tracking];
+
+    const data = await registers.get(registerID, projection);
+
+    let aux = 3;
+    while(!data.tracking) {
+        projection = [tracking.split(".").slice(0, aux).join(".")];
+        const temp = await registers.get(registerID, projection);
+        data.tracking = temp.tracking;
+        aux--;
+    }
+
+    console.log(data);
+    console.log(data.tracking[2021])
+    console.log("aux", aux)
+    
+    //If different the tracking has not been captured by the while-loop
+    //meaning there was tracking.yyyy.mm.dd
+    let response;
+    
+    if (aux >= 2) {
+        console.log("modo automatico")
+        let values = [];
+        if(aux === 3){
+            values = data.tracking[year][month][day];
+        }
+
+        values.push(value);
+        
+        const update = {
+            tracking: {
+                [year]: {
+                    [month]: {
+                        [day]: values
+                    }
+                }
+            }
+        }
+    
+    
+    // If we do not have anything:
+        // PutItem info as new month and add month timestamp on the shoot
+        // console.log("update", update.tracking[year][month])
+        response = await registers.update(registerID, update, false);
+    } else {
+        console.log("modo manual")
+
+        const update = {
+            tracking: {
+                [year]: {
+                    [month]: {
+                        stamp: (new Date(year, month)).toISOString(),
+                        [day]: [value]
+                    }
+                }
+            }
+        }
+        
+
+        const updateNames = {};
+        let updateExpression = "";
+        console.log("Valor de aux")
+        const attributes = tracking.split(".").splice(0, aux+2); //Aux siempre vale 1 menos del que coindice, y sumamos 1 pq el de corte se excluye
+        console.log("atributos existentes", attributes)
+        attributes.forEach((value, index) => {
+            if ((isNaN(value))) {
+                updateExpression += value;
+            } else {
+                if(index !== 0) {
+                    updateExpression += ".";
+                }
+                updateExpression += "#n"+value;
+                updateNames["#n"+value] = value;
+            }
+        });
+
+        let updateValue = attributes.reduce((prev, curr)=> {
+            return prev[curr];
+        }, update)
+        const reversed = attributes.reverse();
+        let updateValueName = ":" + reversed.join("_");
+
+        const updateValues = {[updateValueName]: updateValue}
+        updateExpression += `=${updateValueName}`;
+
+        const updateManual = {
+            updateExpression,
+            updateValues,
+            updateNames
+        }
+
+        console.log(updateManual);
+
+        response = await registers.update(registerID, updateManual, true);
+    }
+
+    return data;
+}
+
+
 module.exports = {
+    getSupported,
     getRegister,
     getTracking, 
     createRegister,
-    addTrackingEvent
+    addTrackingEvent,
+    getNewTracking,
+    addTrackingEventNew
 }
