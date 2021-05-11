@@ -6,7 +6,12 @@ const {apiRouter} = require("./routers");
 const jwt = require("jsonwebtoken"); // JWT
 const { authController } = require("./controllers")
 
+
 require("dotenv").config()
+
+
+
+
 
 
 app.listen(3000, () => console.log("Server listening...."));

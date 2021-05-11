@@ -37,6 +37,9 @@ const config = {
     }
 }
 
+const JDyn = require("../../libs/jdyn")
+const jdyn = new JDyn(config);
+
 // Old
 //const dynamodb = new AWS.DynamoDB(config);
 
@@ -102,5 +105,6 @@ module.exports = {
     getItem,
     scanTable,
     putItem,
-    updateItem
+    updateItem,
+    jdyn
 }
