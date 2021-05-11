@@ -8,7 +8,7 @@ router.get("/:medicID/patients", async (req, res) => {
     console.log("reached this endpoint")
     const {medicID} = req.params;
     const data = await medicsController.getPatients(medicID);
-    res.json({patients: data.patients});
+    res.json(data);
 });
 
 

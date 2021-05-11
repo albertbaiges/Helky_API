@@ -1,12 +1,13 @@
 
 const usersController = require("./usersController");
-const { plans } = require("./db"); 
+const { plans, jdyn } = require("./db"); 
 
 async function getMealPlan(planID) {
-    const fields = ["patient", "weekdays"];
+    const projection = ["patient", "weekdays"];
     try {
-        const data = await plans.get(planID, fields);
-        console.log("tenemos estos datos", data)
+        // const data = await plans.get(planID, fields);
+        const key = {planID};
+        const data = jdyn.getItem("plans", key, projection);
         return data;
     } catch (error) {
         console.error("Something went wrong", error);
@@ -14,9 +15,11 @@ async function getMealPlan(planID) {
 }
 
 async function getMedicines(planID) {
-    const fields = ["patient", "weekdays"];
+    const projection = ["patient", "weekdays"];
     try {
-        const data = await plans.get(planID, fields);
+        // const data = await plans.get(planID, fields);
+        const key = {planID}
+        const data = await jdyn.getItem("plans", key, projection);
         // console.log("datos obtenidos", data.weekdays)
         for(let day in data.weekdays){
             data.weekdays[day] = {
@@ -40,8 +43,9 @@ async function updateMeals(planID, data) {
         }
     }
 
-    const response = await plans.update(planID, update);
-    console.log("repuesta", response);
+    // const response = await plans.update(planID, update);
+    const key = {planID};
+    const response = await jdyn.updateItem("plans", key, update);
     return response.weekdays;
 }
 
@@ -62,16 +66,20 @@ async function updateMedicines(planID, data) {
         }
     }
     console.log("Objeto de actualizacion", update);
-    const response = await plans.update(planID, update);
-    console.log("Valores actualizados", response);
+    // const response = await plans.update(planID, update);
+    const key = {planID};
+    const response = jdyn.updateItem("plans", key, update);
     return response;
 }
 
 async function getActivities(planID) {
-    const fields = ["patient", "weekdays"];
+    const projection = ["patient", "weekdays"];
     try {
-        const data = await plans.get(planID, fields);
+        // const data = await plans.get(planID, fields);
         // console.log("datos obtenidos", data.weekdays)
+        console.log("using jdyn")
+        const key = {planID};
+        const data = await jdyn.getItem("plans", key, projection)
         for(let day in data.weekdays){
             data.weekdays[day] = {
                 day,
@@ -92,7 +100,9 @@ async function updateActivities(planID, data) {
             }
         }
     }
-    const response = await plans.update(planID, update);
+    // const response = await plans.update(planID, update);
+    const key = {planID};
+    const response = await jdyn.updateItem("plans", key, update);
     return response.weekdays;
 }
 

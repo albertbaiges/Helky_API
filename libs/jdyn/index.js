@@ -71,11 +71,11 @@ class JDyn {
         }
     }
 
-    async _updateItem() {
+    async _updateItem(input) {
         try {
             const updateCommand = new DDB.UpdateItemCommand(input);
             const response = await this._client.send(updateCommand);
-            return response;
+            return this.Converter.unmarshall(response.Attributes);
         } catch (err) {
             throw err;
         }
@@ -83,7 +83,7 @@ class JDyn {
 
     async updateItem(tableName, key, update, manual) {
         try {
-            const keyMarsh = this.Converter.marshall({key});
+            const keyMarsh = this.Converter.marshall(key);
 
             let updateExpressionData, updateValues, updateNames;
             if(manual) {
@@ -92,7 +92,6 @@ class JDyn {
                 updateNames = update.updateNames;
             } else {
                 const result = this._buildInputs(update);
-                console.log("resultado build", result);
                 updateExpressionData = result.expressionArr.join();
                 updateNames = result.attributeNames;
                 updateValues = result.attributeValues;
@@ -130,34 +129,27 @@ class JDyn {
 
     }
 
-    async _scan() {
+    async _scan(input) {
         try {
             const scanCommand = new DDB.ScanCommand(input);
             const response = await this._client.send(scanCommand);
             const items = response.Items;
-            // const itemsUnmarsh = [];
-            // items.forEach(item => {
-            //     itemsUnmarsh.push(Converter.unmarshall(item));
-            // });
-            // return itemsUnmarsh;
-            return items;
+            return items.map(item => this.Converter.unmarshall(item));
         } catch (err) {
             throw err;
         }
     }
 
     async scan(tableName, limit, projectionArr, filter) {
-        const projection = projectionArr.join();
-        let {projectionExpression, expressionAttributeNames} = this._buildProjection(projection);
+        let {projectionExpression, expressionAttributeNames} = this._buildProjection(projectionArr);
         const { expressionArr, attributeNames, attributeValues } = this._buildInputs(filter);
         
-        const filterValuesMarsh = Converter.marshall(attributeValues);
-        wildcardFormat = expressionArr.map(filterExpression => {
+        const filterValuesMarsh = this.Converter.marshall(attributeValues);
+        const wildcardFormat = expressionArr.map(filterExpression => {
             const formated = filterExpression.replace("=", ",");
             return `contains(${formated})`;
         });
         const wildcardData = wildcardFormat.join(" AND ");
-
 
         const input = {
             TableName: tableName,
@@ -196,7 +188,7 @@ class JDyn {
                 // console.log("eran diferentes", expKey, key)
                 attributeNames[expKey] = key;
             }
-            if (update[key].constructor === Object) {
+            if (attributes[key].constructor === Object) {
                 // console.log("la key tiene un objeto dentro")
                 const subObject = this._buildInputs(attributes[key]); //Que le haga lo mismo a ese objeto
                 subObject.expressionArr = subObject.expressionArr.map(update => expKey + "." + update + "_" + key);
@@ -209,7 +201,7 @@ class JDyn {
             } else {
                 // console.log("la key no contiene un objecto")
                 expressionArr.push(`${expKey}=:${key}`);
-                attributeValues[`:${key}`] = update[key];
+                attributeValues[`:${key}`] = attributes[key];
             }
         }
         return { expressionArr, attributeNames, attributeValues };
