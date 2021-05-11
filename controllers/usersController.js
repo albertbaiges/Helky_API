@@ -10,6 +10,7 @@ async function getUser(userID) {
 
     // console.log("El usuario obtenido es", user);
     // return user;
+    console.log("usando a jdyn")
     const key = {userID}
     const user = jdyn.getItem("users", key, projection);
 
@@ -18,28 +19,40 @@ async function getUser(userID) {
 
 
 async function getDisorders(userID) {
-    const projection = ["userID", "username", "disorders"];
-    const userDisorders = await users.getFromUser(userID, projection);
+    const projection = ["userID", "username", "email", "disorders"];
+    // const userDisorders = await users.getFromUser(userID, projection);
+    console.log("usando a jdyn")
+    const key = {userID};
+    const userDisorders = jdyn.getItem("users", key, projection);
     return userDisorders;
 }
 
-async function getMedicines(patientID) {
-    const fields = ["medicines"];
-    const data = await users.getFromUser(patientID, fields);
-    return data
+async function getMedicines(userID) {
+    const projection = ["userID", "username", "email", "medicines"];
+
+    console.log("usando a jdyn")
+    const key = {userID};
+    // const data = await users.getFromUser(userID, fields);
+    const userMedicines = jdyn.getItem("users", key, projection);
+    return userMedicines;
 }
 
 
 async function getMedics(userID) {
-    const projection = ["userID", "username", "medics"];
-    const userMedics = await users.getFromUser(userID, projection);
+    const projection = ["userID", "username", "email", "medics"];
+    const key = {userID};
+    console.log("usando a jdyn")
+    const userMedics = jdyn.getItem("users", key, projection);
+    // const userMedics = await users.getFromUser(userID, projection);
     return userMedics;
 }
 
 async function getCenters(userID) {
-    const projection = ["userID", "username", "centers"];
-    const userMedics = await users.getFromUser(userID, projection);
-    return userMedics;
+    const projection = ["userID", "username", "email", "centers"];
+    // const userMedics = await users.getFromUser(userID, projection);
+    const key = {userID};
+    const userCenters = jdyn.getItem("users", key, projection);
+    return userCenters;
 }
 
 async function update(userID, updateValue) {
