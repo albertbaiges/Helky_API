@@ -12,15 +12,15 @@ async function update(userID, data) {
     delete user.utype;
 
     if (data.medicines) {
-        console.log("cambiado")
+        // console.log("cambiado")
         user.medicines = data.medicines;
     }
 
-    console.log("nuevos datos", data)
+    // console.log("nuevos datos", data)
     delete user.disorders;
 
     const response = await users.update(userID, user);
-    console.log("la respuesta es", response);
+    // console.log("la respuesta es", response);
 
     const medicUpdate = {
         patients: {
@@ -30,9 +30,9 @@ async function update(userID, data) {
         }
     }
 
-    user.medics.forEach(async medicID => {
-        console.log("medico", medicID);
-        const response = await users.update(medicID, medicUpdate);
+    const medics = Object.values(user.medics);
+    medics.forEach(async medic => {
+        const response = await users.update(medic.userID, medicUpdate);
     });
 
     return {userID, medicines: response.medicines};

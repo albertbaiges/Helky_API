@@ -2,6 +2,9 @@
 
 const express = require("express");
 const { centersController } = require("../../controllers");
+const { centersMiddlewares } = require("../../middlewares")
+
+
 const router = express.Router();
 
 
@@ -17,7 +20,7 @@ router.get("/:centerID/medics", async (req, res) => {
     res.send(data);
 });
 
-router.post("/:centerID/signmedic", async (req, res) => {
+router.post("/:centerID/signmedic", centersMiddlewares.signMedicFields ,async (req, res) => {
     try {
         const {centerID} = req.params;
         const medic = req.body;

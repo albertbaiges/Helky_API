@@ -4,22 +4,18 @@
 // while code is modulated in several modules
 
 const patients = require("./patients");
-const disorders = require("./disorders");
 const registers = require("./registers");
-const mealplans = require("./mealplans");
+const plans = require("./plans");
 const medics = require("./medics");
-const medicines = require("./medicines");
 const users = require("./users");
 const centers = require("./centers");
 const searches = require("./searches");
 
 module.exports = {
     patients,
-    disorders,
     registers,
-    mealplans,
+    plans,
     medics,
-    medicines,
     users,
     centers,
     searches

@@ -1,13 +1,14 @@
 
 const express = require("express");
-const { mealPlansController } = require("../../controllers");
+const { plansController } = require("../../controllers");
+const {plansMiddlewares} = require("../../middlewares");
 
 const router = express.Router();
 
 
-router.get("/:planID", async (req, res) => {
+router.get("/:planID/meals", async (req, res) => {
     const {planID} = req.params;
-    const data = await mealPlansController.getMealPlan(planID);
+    const data = await plansController.getMealPlan(planID);
     console.log(data)
     if (data) {
         const {day, slot} = req.query;
@@ -35,25 +36,25 @@ router.get("/:planID", async (req, res) => {
 
 });
 
-router.post("/:planID", async (req, res) => {
+router.patch("/:planID/meals", plansMiddlewares.patchMeals, async (req, res) => {
     const {planID} = req.params;
     console.log("recibimos el body", req.body)
-    const data = await mealPlansController.update(planID, req.body);
+    const data = await plansController.updateMeals(planID, req.body);
     res.json(data);
 });
 
 router.get("/:planID/medicines", async (req, res) => {
     const {planID} = req.params;
-    const data = await mealPlansController.getMedicines(planID);
+    const data = await plansController.getMedicines(planID);
     res.json(data);
 });
 
 
-router.patch("/:planID/medicines", async (req, res) => {
+router.patch("/:planID/medicines", plansMiddlewares.patchMedicines, async (req, res) => {
     const {planID} = req.params;
     const body = req.body;
     try{
-        const data = await mealPlansController.updateMedicines(planID, body);
+        const data = await plansController.updateMedicines(planID, body);
         res.json({data});
     } catch(err) {
         res.json({error: "error", message: err.message});
@@ -63,7 +64,7 @@ router.patch("/:planID/medicines", async (req, res) => {
 
 router.get("/:planID/activities", async (req, res) => {
     const {planID} = req.params;
-    const data = await mealPlansController.getActivities(planID);
+    const data = await plansController.getActivities(planID);
     console.log(data)
     if (data) {
         const {day} = req.query;
@@ -89,11 +90,11 @@ router.get("/:planID/activities", async (req, res) => {
 });
 
 
-router.patch("/:planID/activities", async (req, res) => {
+router.patch("/:planID/activities", plansMiddlewares.patchActivities, async (req, res) => {
     const {planID} = req.params;
     const body = req.body;
     try{
-        const data = await mealPlansController.updateActivities(planID, body);
+        const data = await plansController.updateActivities(planID, body);
         res.json(data);
     } catch(err) {
         res.json({error: "error", message: err.message});

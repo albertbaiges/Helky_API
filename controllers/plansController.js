@@ -30,7 +30,7 @@ async function getMedicines(planID) {
     }
 }
 
-async function update(planID, data) {
+async function updateMeals(planID, data) {
 
     const update = {
         weekdays: {
@@ -51,7 +51,7 @@ async function updateMedicines(planID, data) {
     console.log("Queremos actualizar los datos para", user)
     const check = data.medicines.every(medicine => user.medicines.includes(medicine.code));
     if(!check) {
-        throw new Error("Trying to plan a medicine that is not assigned to the patient of that plan");
+        throw new Error("Trying to plan a medicine that is not assigned");
     }
     //Actualizar las medicinas del plan
     const update = {
@@ -100,7 +100,7 @@ async function updateActivities(planID, data) {
 module.exports = {
     getMealPlan,
     getMedicines,
-    update,
+    updateMeals,
     updateMedicines,
     getActivities,
     updateActivities

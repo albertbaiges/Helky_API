@@ -1,6 +1,7 @@
 
 const jwt = require("jsonwebtoken"); // JWT
-const {disorders, patients, registers, mealplans, medics, medicines, users, centers, searches} = require("./api"); //Routers
+const {patients, registers, plans, medics, users, centers, searches} = require("./api"); //Routers
+const {medicsMiddlewares, centersMiddlewares} = require("../middlewares");
 const express = require("express");
 const router = express.Router();
 
@@ -26,14 +27,12 @@ function authenticateJWT(req, res, next) {
 }
 
 
-router.use("/disorders", disorders);
 router.use("/patients", patients);
 router.use("/registers", registers);
-router.use("/mealplans", mealplans);
-router.use("/medics", medics);
-router.use("/medicines", medicines);
+router.use("/plans", plans);
+router.use("/medics", medicsMiddlewares.medicPath, medics);
 router.use("/users", users);
-router.use("/centers", centers);
+router.use("/centers", centersMiddlewares.centerPath, centers);
 router.use("/search", searches);
 
 module.exports = router;

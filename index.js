@@ -11,54 +11,13 @@ require("dotenv").config()
 
 app.listen(3000, () => console.log("Server listening...."));
 
-// MIDDLEWARES
+// High Level Middlewares
 app.use(cors()); // for parsing application/json
 app.use(express.json()) // for parsing application/json
 app.use(pathLogger); // Get logs of the application
 
 // ROUTERS
 app.use("/api", apiRouter);
-
-// Webapp landing and login (get the api token)
-app.get("/", (req, res) => {
-    // if (!req.session.user) {
-    //     res.sendFile("index.html", {root: "./views"});
-    // } else {
-    //     console.log("Thie user has already been logged");
-    //     console.log("This user has on its cookie:", req.session.user);
-    //     res.send("You were already logged in, no need to take the form :)")
-    // }
-});
-
-// app.route("/login")
-//     .get((req, res) => {
-//         res.sendFile("index.html", {root: "./views"});
-//     })
-//     .post((req, res) => {
-//         console.log("Vamos a procesar un post")
-//         const data = {username: req.body.username, token: "This is the token for the api"}
-//         console.log("Han intentado un login con", req.body.username, req.body.password);
-//         // db.checkLogin(req.body.username, req.body.password)
-//         //     .then(obj => {
-//         //         const response = {status: obj.status};
-//         //         if (obj.status === 1) {
-//         //             response.message = "Sucessful login";
-//         //             req.session.user =  obj.user;
-//         //         } else if (obj.status === 0) {
-//         //             response.message = "Wrong password";
-//         //         } else if (obj.status === -1){
-//         //             response.message = "Unregistered user";
-//         //         }
-//         //         res.json(response);
-//         //     });
-
-//         // Sucessful login...
-//         // Payload to serialize
-//         payload = {user: "albert", userID: 1, role: "dev"};
-//         const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET);
-//         res.json({jwt: accessToken});
-//     });
-
 
 //! Mirar si cambiar el login a email-password
 // 404 Not Registered - 401 Bad User-Password 
@@ -79,9 +38,9 @@ app.post("/login", async (req, res) => {
         // const response = {username: data.user.username, jwt: accessToken}; // Warn deprecation of jwt?
         res.json(user);
     } else if (data.status === 0) {
-        res.sendStatus(401);
+        res.sendStatus(401).statusMessage("Invalid password");
     } else if (data.status === -1) {
-        res.sendStatus(404);
+        res.sendStatus(400).statusMessage("Not registered");
     }
 });
 

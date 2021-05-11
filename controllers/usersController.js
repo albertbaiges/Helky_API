@@ -19,6 +19,13 @@ async function getDisorders(userID) {
     return userDisorders;
 }
 
+async function getMedicines(patientID) {
+    const fields = ["medicines"];
+    const data = await users.getFromUser(patientID, fields);
+    return data
+}
+
+
 async function getMedics(userID) {
     const projection = ["userID", "username", "medics"];
     const userMedics = await users.getFromUser(userID, projection);
@@ -283,6 +290,7 @@ async function handleRelation(userID, petition) {
 module.exports = {
     getUser,
     getDisorders,
+    getMedicines,
     getMedics,
     getCenters,
     update,

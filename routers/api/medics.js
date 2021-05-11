@@ -12,4 +12,16 @@ router.get("/:medicID/patients", async (req, res) => {
 });
 
 
+// router.patch("/:medicID/patients", async (req, res) => {
+//     const {userID, disorders, medicines} = req.body;
+//     const update = {disorders, medicines};
+//     const data = await patientsController.update(userID, update);
+//     console.log("los datos a devolver son", data)
+//     const response = {
+//         message: "Successfully updated",
+//         data
+//     }
+//     res.send(response);
+// });
+
 module.exports = router;

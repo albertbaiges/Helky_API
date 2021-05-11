@@ -1,24 +1,20 @@
 
 
 const authController = require("./authController");
-const disordersController = require("./disordersController");
 const patientsController = require("./patientsController");
 const registersController = require("./registersController");
-const mealPlansController = require("./mealplansController");
+const plansController = require("./plansController");
 const medicsController = require("./medicsController");
-const medicinesController = require("./medicinesController");
 const usersController = require("./usersController");
 const centersController = require("./centersController");
 const searchesController = require("./searchesController");
 
 module.exports = {
     authController,
-    disordersController,
     patientsController,
     registersController,
-    mealPlansController,
+    plansController,
     medicsController,
-    medicinesController,
     usersController,
     centersController,
     searchesController

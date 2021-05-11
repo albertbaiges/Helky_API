@@ -1,5 +1,7 @@
 
 const {usersController} = require("../../controllers");
+const { usersMiddlewares } = require("../../middlewares");
+
 const express = require("express");
 const router = express.Router();
 
@@ -15,6 +17,12 @@ router.get("/:userID/disorders", async (req, res) => {
     console.log("ha llegado a este endpoint")
     const {userID} = req.params;
     const data = await usersController.getDisorders(userID);
+    res.json(data);
+});
+
+router.get("/:userID/medicines", async (req, res) => {
+    const {userID} = req.params;
+    const data = await usersController.getMedicines(userID);
     res.json(data);
 });
 
@@ -45,7 +53,7 @@ router.get("/:userID/notifications", async (req, res) => {
 });
 
 
-router.post("/:userID/relations", async (req, res) => {
+router.post("/:userID/relations", usersMiddlewares.postRelation, async (req, res) => {
     try {
         const {userID} = req.params;
         const relationAction = req.body;

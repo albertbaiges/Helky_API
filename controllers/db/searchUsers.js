@@ -44,9 +44,9 @@ function buildUpdate(update) {
     const updateValues = {};
     for (const key in update) {
         const expKey = (isNaN(key)) ? key : "#n"+key;
-        console.log("miramos diferencias", expKey, key)
+        // console.log("miramos diferencias", expKey, key)
         if(expKey !== key) {
-            console.log("eran diferentes", expKey, key)
+            // console.log("eran diferentes", expKey, key)
             updateNames[expKey] = key;
         }
         if(update[key].constructor === Object) {
@@ -84,7 +84,6 @@ async function update(userID, update, manual) {
         updateNames = update.updateNames;
     } else {
         const result = buildUpdate(update);
-        console.log("resultado build", result);
         updateExpressionData = result.updateExpressions.join();
         updateNames = result.updateNames;
         updateValues = result.updateValues;

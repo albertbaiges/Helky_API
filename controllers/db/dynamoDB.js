@@ -85,9 +85,7 @@ async function putItem(input) {
 async function updateItem(input) {
     try {
         const updateCommand = new DDB.UpdateItemCommand(input);
-        console.log(input)
         const response = await client.send(updateCommand);
-        console.log("***crashed here")
 
                 // //! Verify it worked using the http status code of the response
         // //! improve the return
