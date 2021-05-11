@@ -1,6 +1,6 @@
 
 
-const {registers, Converter, users} = require("./db");
+const {registers, Converter, users, jdyn} = require("./db");
 
 let lastRegisterID = 1;
 
@@ -9,23 +9,15 @@ function getSupported() {
 }
 
 async function getRegister(registerID) {
-    const fields = ["registerID", "disorder", "patient"];
+    const projection = ["registerID", "disorder", "patient"];
     console.log("procesando este")
     try {
-        const data = await registers.getFromRegister(registerID, fields);
-        return data;
-    } catch (error) {
-        console.error("Something went wrong", err);
-    }
-}
-
-async function getTracking(registerID) {
-    const fields = ["tracking"];
-    try {
-        const data = await registers.getFromRegister(registerID, fields);
+        // const data = await registers.getFromRegister(registerID, projection);
+        const key = {registerID};
+        const data = jdyn.getItem("registers", key, projection);
         return data;
     } catch (err) {
-        console.error("Something went wrong", err);
+        throw err;
     }
 }
 
@@ -97,50 +89,10 @@ async function createRegister(patientID, disorder) {
     }
 }
 
-//! Ready to use but requires the registerID to have all the lists dayX: [empty, empty, empty]
-async function addTrackingEvent(registerID, tracking) {
-    const date = new Date(tracking.date);
-    //console.log(date.getHours(), date.getMinutes())
-    const day = date.getDate();
-    const hour = date.getHours();
-    let slot;
-    console.log(hour)
-    if (6 < hour && hour < 10) { //!Must be improved
-        slot = 0;
-    } else if (12 < hour && hour < 16) {
-        slot = 1;
-    } else if (19 < hour && hour < 23 || true) { //! Remove that true when completed
-        slot = 2;
-    } else {
-        return "not supported"
-    }
-    const registerIDMarsh = Converter.marshall({registerID})
-    const marshall = Converter.marshall({tracking});
-    try {
-        const updateInput = {
-            TableName: "registers",
-            Key: registerIDMarsh,
-            UpdateExpression: `SET tracking.day_1[2] = :tracking`, //! Add the day from the petition
-            ExpressionAttributeValues: {
-                ":tracking": marshall.tracking
-            },
-            ReturnValues: "UPDATED_OLD"
-        };
-        console.log(updateInput.ExpressionAttributeValues)
-        const updateCommand = new DDB.UpdateItemCommand(updateInput);
-        const response = await client.send(updateCommand);
-        console.log(response);
-        //Prepared to return old values if something gets overwritten
-    } catch (err) {
-        console.error("Something went wrong", err);
-    }
-    return "done";
-}
 
-
-
-async function getNewTracking(registerID, month, year) {
+async function getTracking(registerID, month, year) {
     //month and year are used to return specific trackings, by default we get current ones
+    console.log("procesando con la version nueva")
     console.log("Se quiere el mes", month, "y año", year)
     const date = new Date();
     if(!month) {
@@ -152,12 +104,14 @@ async function getNewTracking(registerID, month, year) {
     }
 
     const projection = [`tracking.${year}.${month}`, "patient"];
-    const data = await registers.get(registerID, projection);
+    // const data = await registers.get(registerID, projection);
+    const key = {registerID};
+    const data = jdyn.getItem("registers", key, projection)
     return data;
 }
 
 
-async function addTrackingEventNew(registerID, event) {
+async function addTrackingEvent(registerID, event) {
     // const {year, month, day, value} = event;
     const value = event;
     const date = new Date(event.timestamp);
@@ -210,7 +164,9 @@ async function addTrackingEventNew(registerID, event) {
     // If we do not have anything:
         // PutItem info as new month and add month timestamp on the shoot
         // console.log("update", update.tracking[year][month])
-        response = await registers.update(registerID, update, false);
+        // response = await registers.update(registerID, update, false);
+        const key = {registerID};
+        response = await jdyn.updateItem("registers", key, update);
     } else {
         console.log("modo manual")
 
@@ -259,11 +215,12 @@ async function addTrackingEventNew(registerID, event) {
         }
 
         console.log(updateManual);
+        const key = {registerID};
+        response = await jdyn.updateItem("registers", key, updateManual, true);
 
-        response = await registers.update(registerID, updateManual, true);
     }
 
-    return data;
+    return response;
 }
 
 
@@ -272,7 +229,5 @@ module.exports = {
     getRegister,
     getTracking, 
     createRegister,
-    addTrackingEvent,
-    getNewTracking,
-    addTrackingEventNew
+    addTrackingEvent
 }

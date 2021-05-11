@@ -1,16 +1,20 @@
-const { users } = require("./db");
+const { users, jdyn } = require("./db");
 const crypto = require("../utils/cryptography");
 
 
-function getPatients(centerID) {
+function getPatients(userID) {
     const projection = ["userID", "username", "email", "patients"];
-    const data = users.getFromUser(centerID, projection);
+    // const data = users.getFromUser(centerID, projection);
+    const key = {userID};
+    const data = jdyn.getItem("users", key, projection);
     return data;
 }
 
-function getMedics(centerID) {
+function getMedics(userID) {
     const projection = ["userID", "username", "email", "medics"];
-    const data = users.getFromUser(centerID, projection);
+    // const data = users.getFromUser(centerID, projection);
+    const key = {userID};
+    const data = jdyn.getItem("users", key, projection)
     return data;
 }
 

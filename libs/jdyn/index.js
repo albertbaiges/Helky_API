@@ -109,7 +109,7 @@ class JDyn {
             }
         
         
-            if(Object.keys(updateNames).length !== 0) {
+            if(updateNames && Object.keys(updateNames).length !== 0) {
                 input.ExpressionAttributeNames = updateNames;
             }
         
