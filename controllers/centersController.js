@@ -1,6 +1,5 @@
 const { users, jdyn } = require("./db");
-const crypto = require("../utils/cryptography");
-
+const { Medic } = require("../models");
 
 function getPatients(userID) {
     const projection = ["userID", "username", "email", "patients"];
@@ -22,23 +21,26 @@ async function registerMedic(centerID, medic) {
     
     //Verificar que no haya ya un usuario con este email
 
-    const query = "email = :email";
-    const queryParams = {
-        ":email": medic.email
+    const projectionScan = ["userID", "username", "email"];
+    const filter = {
+        email: medic.email
     }
-    const fields = ["userID", "username", "email"];
-    const previousUser = await users.queryUser(query, queryParams, fields);
+    console.log("filtro", filter)
+    const previousUser = await jdyn.scan("users", projectionScan, filter);
     console.log(previousUser)
     
     if(previousUser.length !== 0) {
         throw new Error("Email in use")
     }
+
+    const userID = (Date.now()).toString(16);
         
-    const medicUser = new Medic(20, medic.username, medic.email, medic.password);
+    const medicUser = new Medic(userID, medic.username, medic.email, medic.password);
     
     //Get our center
     const centerProjection = ["userID", "username", "email"];
-    const center = await users.getFromUser(centerID, centerProjection);
+    // const center = await users.getFromUser(centerID, centerProjection);
+    const center = await jdyn.getItem("users", {userID: centerID}, centerProjection);
 
     console.log("our center is", center)
 
@@ -48,16 +50,13 @@ async function registerMedic(centerID, medic) {
     //PutItem
 
     await users.put(medicUser);
+    await jdyn.putItem("users", medicUser)
     
     const projection = ["userID", "username", "email"];
     
-    const signedMedic = await users.getFromUser(medicUser.userID, projection);
+    // const signedMedic = await users.getFromUser(medicUser.userID, projection);
+    const signedMedic = await jdyn.getItem("users", {userID: medicUser.userID}, projection);
         
-    const update = {
-        medics: {
-            [signedMedic.userID]: signedMedic
-        }
-    }
 
     const updateExpression = "medics.#id = :medic";
     const updateValues = {
@@ -74,36 +73,11 @@ async function registerMedic(centerID, medic) {
         updateNames
     }
 
-    const updateResponse = await users.update(center.userID, updateManual, true);
+    // const updateResponse = await users.update(center.userID, updateManual, true);
+    const updateResponse = await jdyn.updateItem("users", {userID: center.userID}, updateManual, true);
 
     return updateResponse;
 }
-
-class User {
-    constructor(userID, username, email, password) {
-        this.userID = String(userID);
-        this.username = username;
-        this.email = email;
-
-        const salt = crypto.createSalt();
-        this.salt = salt;
-        
-        const encryptedPassword = crypto.encrypt(password, this.salt);
-
-        this.password = encryptedPassword;
-    }
-}
-
-class Medic extends User {
-    constructor(userID, username, email, password) {
-        super(userID, username, email, password);
-        this.utype = "medic";
-        this.patients = {};
-        this.centers = {};
-    }
-}
-
-
 
 
 

@@ -47,7 +47,7 @@ class JDyn {
         }
     }
 
-    async _putItem() {
+    async _putItem(input) {
         try {
             const putItemCommand = new DDB.PutItemCommand(input); 
             const response = await this._client.send(putItemCommand);
@@ -59,10 +59,10 @@ class JDyn {
 
     async putItem(tableName, item) {
         try {
-            const userMarsh = this.Converter.marshall(item);
+            const itemMarsh = this.Converter.marshall(item);
             const input = {
                 TableName: tableName,
-                Item: userMarsh,
+                Item: itemMarsh
             };
             const response = await this._putItem(input);
             return response;
@@ -140,7 +140,7 @@ class JDyn {
         }
     }
 
-    async scan(tableName, limit, projectionArr, filter) {
+    async scan(tableName, projectionArr, filter) {
         let {projectionExpression, expressionAttributeNames} = this._buildProjection(projectionArr);
         const { expressionArr, attributeNames, attributeValues } = this._buildInputs(filter);
         
@@ -153,13 +153,11 @@ class JDyn {
 
         const input = {
             TableName: tableName,
-            Limit: limit,
             ProjectionExpression: projectionExpression,
             FilterExpression: wildcardData,
             ExpressionAttributeValues: filterValuesMarsh
         }
-
-
+    
         if (Object.keys(expressionAttributeNames).length !== 0) {
             input.ExpressionAttributeNames = expressionAttributeNames
         }
@@ -171,7 +169,8 @@ class JDyn {
                 input.ExpressionAttributeNames = attributeNames;
             }
         }
-    
+
+
         const data = await this._scan(input);
         return data;
     }

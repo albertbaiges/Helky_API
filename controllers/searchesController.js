@@ -16,7 +16,7 @@ async function getUsers(values) {
     console.log("filtro", filter)
     // const data = users.getUsers(filter);
     const projection = ["userID", "username", "email", "utype"]
-    const data = jdyn.scan("users", 10, projection, filter);
+    const data = jdyn.scan("users", projection, filter);
     return data;
 }
 
