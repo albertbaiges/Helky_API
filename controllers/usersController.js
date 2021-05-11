@@ -1,14 +1,18 @@
 
 
-const {Converter, users} = require("./db");
+const {Converter, users, jdyn} = require("./db");
 const cryptography = require("../utils/cryptography");
 const registersController = require("./registersController");
 
 async function getUser(userID) {
     const projection = ["userID", "username", "utype", "medics", "email", "medicines", "disorders"];
-    const user = await users.getFromUser(userID, projection);
+    // const user = await users.getFromUser(userID, projection);
 
-    console.log("El usuario obtenido es", user);
+    // console.log("El usuario obtenido es", user);
+    // return user;
+    const key = {userID}
+    const user = jdyn.getItem("users", key, projection);
+
     return user;
 }
 
