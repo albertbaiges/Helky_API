@@ -23,6 +23,7 @@ router.get("/:userID/disorders", async (req, res) => {
 router.get("/:userID/medicines", async (req, res) => {
     const {userID} = req.params;
     const data = await usersController.getMedicines(userID);
+    console.log("respondiendo con", data)
     res.json(data);
 });
 

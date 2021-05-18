@@ -2,7 +2,8 @@
 
 const { response } = require("express");
 const crypto = require("../utils/cryptography");
-const {users} = require("./db");
+const {users, jdyn} = require("./db");
+const { Patient } = require("../models");
 
 /***************/
 let lastId = 1; // For now it must be manually updated everytime the app is openened
@@ -33,59 +34,69 @@ async function checkLogin(username, password) {
     return response;
 }
 
-
-class User {
-    constructor(userID, username, email, password) {
-        this.userID = String(userID);
-        this.username = username;
-        this.email = email;
-
-        const salt = crypto.createSalt();
-        this.salt = salt;
-        
-        const encryptedPassword = crypto.encrypt(password, this.salt);
-
-        this.password = encryptedPassword;
-    }
-}
-
-class Patient extends User {
-    constructor(userID, username, email, password) {
-        super(userID, username, email, password);
-        this.utype = "patient";
-        this.disorders = [];
-        this.medicines = [];
-        this.medics = {};
-        this.centers = {};
-    }
-}
-
 async function registerUser(user){
 
     //Verificar que no haya ya un usuario con este email
 
-    const query = "email = :email";
-    const queryParams = {
-        ":email": user.email
+    // const query = "email = :email";
+    // const queryParams = {
+    //     ":email": user.email
+    // }
+    // const fields = ["userID", "username", "email"];
+    // const previousUser = await users.queryUser(query, queryParams, fields);
+    const projectionScan = ["userID", "username", "email"];
+    const filter = {
+        email: user.email
     }
-    const fields = ["userID", "username", "email"];
-    const previousUser = await users.queryUser(query, queryParams, fields);
+
+    const previousUser = await jdyn.scan("users", projectionScan, filter);
     console.log(previousUser)
 
     if(previousUser.length !== 0) {
         throw new Error("Email in use")
     }
-    
-    const patient = new Patient(10, user.username, user.email, user.password);
 
-    //PutItem
+    const userID = (Date.now()).toString(16);
+    
+    const patient = new Patient(userID, user.username, user.email, user.password);
+    // //PutItem
 
     await users.put(patient);
 
     const projection = ["userID", "username", "email", "utype"];
-
-    const signedUser = await users.getFromUser(patient.userID, projection);
     
+    const signedUser = await jdyn.getItem("users", {userID: patient.userID}, projection);
+
+
+    //Create a plan
+    const userCopy = {...signedUser};
+    delete userCopy.utype;
+
+    const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday',
+    'friday', 'saturday', 'sunday'];
+
+    const plan = {
+        planID: userCopy.userID,
+        patient: userCopy,
+        weekdays: {}
+    };
+
+    for (let day of weekdays) {
+        plan.weekdays[day] = {
+            day,
+            activities: {},
+            breakfast: {},
+            dinner: {},
+            lunch: {},
+            medicines: []
+        }
+    }
+
+    await jdyn.putItem("plans", plan);
+
+    
+    // const signedUser = await users.getFromUser(patient.userID, projection);
+
     return signedUser;
 }
 

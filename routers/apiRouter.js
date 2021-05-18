@@ -14,6 +14,7 @@ function authenticateJWT(req, res, next) {
     let token;
     if (header) {
         token = header.split(" ")[1];
+        console.log("Token recibido", token)
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, payload) => {
             if (err) {
                 return res.sendStatus("403");

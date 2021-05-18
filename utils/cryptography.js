@@ -2,7 +2,7 @@
 const md5 = require("md5");
 
 function createSalt() {
-    let salt = (Math.random()*0xfffff*10000000).toString(16); // se puede hacer más largo 
+    let salt = (Math.random()*0xfffff*10000000).toString(16);
     return salt;
 }
 
