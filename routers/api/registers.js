@@ -6,15 +6,15 @@ const {registersController} = require("../../controllers");
 const {registersMiddlewares} = require("../../middlewares");
 
 // Creates a register document (must be a valid document) //! Control other people cannot create it for you (middleware)
-router.post("", async (req, res) => {
-    const {patientID, disorder} = req.body;
-    const {id} = await registersController.createRegister(patientID, disorder);
-    if (id) { //! Complete with more informative return to the front
-        res.json({message: "Register created", registerId: id})
-    } else {
-        res.json({error: "to do"}) //! to complete
-    }
 
+router.post("", async (req, res) => {
+    try {        
+        const {patientID, family} = req.body;
+        const data = await registersController.createRegister(patientID, family);
+        res.json(data);
+    } catch (error) {
+        return res.status(400).json({"Error": error.message});   
+    }
 });
 
 // Gets the tracking data from the register document

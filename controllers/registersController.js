@@ -1,5 +1,6 @@
 
 
+const md5 = require("md5");
 const {registers, Converter, users, jdyn} = require("./db");
 
 let lastRegisterID = 1;
@@ -22,71 +23,71 @@ async function getRegister(registerID) {
 }
 
 
-async function createRegister(patientID, disorder) {
-    const arr = ["userID", "email", "username", "disorders"];
-    const patient = await users.getFromUser(patientID, arr);
-    if (patient) {
-        //!Must check if user has this disorders, and if not return that it does not have that disorder
-        //!On client, if received it does not suffer it, ask if want to add it and repeat the creation
-        //!of the register --> request to API to add disorder and request this endpoint again
-        //! also check that this user does not already have a register for that disorder
+async function createRegister(userID, family) {
 
 
-        //!! MUST TURN THE CODE INTO SINGLE RESPONSIBILITY PRINCIPLE
-        //Now this asumes it does not have it and that the user suffers from that disorder
-        const tracking = {};
-        for (let i = 1; i <= 31; i++) {
-            tracking["day_" + i] = new Array(3);
-        }
-        
-        try {
-            const register = {
-                registerID: String(++lastRegisterID),
-                user: {
-                    userID: patient.userID,
-                    email: patient.email,
-                    username: patient.username
-                },
-                disorder,
-                tracking
-    
-            }
+    const projection = ["userID", "username", "email", "disorders", "medics", "centers"];
+    const user = await jdyn.getItem("users", {userID}, projection);
 
-            let response = await registers.create(register);
-            // const itemMarshall = Converter.marshall(item);
-            // const putItemInput = {
-            //     TableName: "registers",
-            //     Item: itemMarshall
-            // }
-            // const putItemCommand = new DDB.PutItemCommand(putItemInput);
-            // const response = await client.send(putItemCommand);
-            // const update = {
-            //     disorders: {
-            //         demodisorder: "testing2"
-            //     },
-            //     name: "testingtest"
-            // }
-            // response = await users.update(patientID, update);
+    const patient = {
+        userID: user.userID,
+        username: user.username,
+        email: user.email
+    };
 
-            const update = {
-                disorders: {...patient.disorders}
-            };
+    const disorderInfo = user.disorders.find(disorder => disorder.family === family);
 
 
-            update.disorders[disorder].registerID = register.registerID;
+    const now = Date.now();
+    const hex = now.toString(16)
+    const registerID = md5(hex);
 
-            response = await users.update(patientID, update);
+    console.log("registerID", registerID);
 
-            // console.log(patient.disorders);
-            return {id: register.registerID};
-        } catch (err) {
-            console.error("Something went wrong", err);
-            //! Warn front about an error
-        }
-        
-    } else {
-        //! WARN THE RESPONSE THAT THE USER DID NOT EXIST --> patient === undefined
+    const item = {
+        registerID,
+        disorder: disorderInfo.family,
+        case: disorderInfo.type,
+        patient,
+        tracking: { }
     }
+    
+    console.log("item", item);
+
+    const response = await jdyn.putItem("registers", item);
+
+    disorderInfo.registerID = registerID;
+
+    const update = {
+        disorders: user.disorders
+    }
+
+    console.log("item", update);
+
+    const updateResponse = await jdyn.updateItem("users", {userID}, update);
+
+
+    const relativesUpdate = {
+        patients: {
+            [user.userID]: {
+                disorders: user.disorders
+            }
+        }
+    }
+
+    const medics = Object.values(user.medics);
+
+    medics.forEach(async medic => {
+        await jdyn.updateItem("users", {userID: medic.userID}, relativesUpdate);
+    });
+
+    const centers = Object.values(user.centers);
+
+    centers.forEach(async center => {
+        await jdyn.updateItem("users", {userID: center.userID}, relativesUpdate);
+    });
+
+    return disorderInfo;
 }
 
 

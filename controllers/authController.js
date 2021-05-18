@@ -82,7 +82,7 @@ async function registerUser(user){
     };
 
     for (let day of weekdays) {
-        plan[day] = {
+        plan.weekdays[day] = {
             day,
             activities: {},
             breakfast: {},

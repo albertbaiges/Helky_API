@@ -71,13 +71,21 @@ async function update(userID, updateValue) {
     //Handle disorders update
     if(updateValue.disorders) {
         const updatedDisorders = [];
+        console.log("emfermedades del paciente", userData.disorders)
+        console.log("emfermedades nuevas del pacienet", updateValue.disorders)
         for (let disorder of updateValue.disorders) {
             console.log("Enfermedad", disorder)
             const storedDisorder = userData.disorders.find(storedDisorder => {
-                return storedDisorder.type === disorder.type && storedDisorder.family === disorder.type;
+                return storedDisorder.family === disorder.family && storedDisorder.type === disorder.type;
             });
+
+            console.log("stored disorder", storedDisorder)
+            const index = userData.disorders.indexOf(storedDisorder);
+            console.log("esta en el indice", index)
+            userData.disorders.splice(userData.disorders.indexOf(storedDisorder), 1);
             
             if (storedDisorder) {
+                console.log("lo tenemos y lo copiamos")
                 updatedDisorders.push(storedDisorder);
             } else {
                 if (registersController.getSupported().includes(updateValue)) {
@@ -89,12 +97,41 @@ async function update(userID, updateValue) {
         updateValue.disorders = updatedDisorders;
         console.log("Los nuevos disorders son", updateValue.disorders)
 
+
+
+        //Borrar el plan de los disorders borrados
+        console.log("********las enfermedades que no se mantienen son", userData.disorders)
+        userData.disorders.forEach(async disorder => {
+            if (disorder.registerID) {
+                console.log("vamos a borrar el registro", disorder.registerID)
+                await jdyn.deleteteItem("registers", {registerID: disorder.registerID});
+            }
+        });
     }
+
+
 
 
 
     // const response = await users.update(userID, updateValue);
     const response = await jdyn.updateItem("users", {userID}, updateValue)
+
+
+
+    //! Update the plan if it is a patient
+    if(userData.utype === "patient") {
+        const projection = ["userID", "username", "email"];
+        const data = await jdyn.getItem("users", {userID}, projection);
+        const planUpdate = {
+            patient: {
+                patientID: data.userID,
+                username: data.username,
+                email: data.email
+            }
+        }        
+
+        await jdyn.updateItem("plans", {planID: data.userID}, planUpdate)
+    }
 
     delete updateValue.salt;
     delete updateValue.password;
@@ -121,7 +158,7 @@ async function update(userID, updateValue) {
         }
     }
 
-    console.log("relatedusers update", relatedUsersUpdate);
+    //console.log("relatedusers update", relatedUsersUpdate);
 
     if (Object.keys(updateValue).length !== 0) {
         if (userData.patients) {
@@ -138,7 +175,10 @@ async function update(userID, updateValue) {
             const medics = Object.values(userData.medics);
             medics.forEach(async medic => {
                 // await users.update(medic.userID, relatedUsersUpdate);
-                await jdyn.updateItem("users", {userID: medic.userID}, relatedUsersUpdate);
+                //console.log("actualizando el medico", medic.userID)
+                const key = {userID: medic.userID};
+                //console.log("usamos la key", key)
+                await jdyn.updateItem("users", key, relatedUsersUpdate);
             });
         }
 
@@ -146,16 +186,18 @@ async function update(userID, updateValue) {
         if (userData.centers) {
             const centers = Object.values(userData.centers);
             centers.forEach(async center => {
+                //console.log("entramos aqui")
                 // await users.update(center.userID, relatedUsersUpdate);
-                await jdyn.updateItem("users", {userID: center.centerID}, relatedUsersUpdate);
+                await jdyn.updateItem("users", {userID: center.userID}, relatedUsersUpdate);
             });       
         }
+       // console.log("ahora estamos en este")
     }
         
 
     // const data = await users.getFromUser(userID, projection);
-    const data = await jdyn.getItem("users", {userId}, projection);
-
+    const data = await jdyn.getItem("users", {userID}, ["userID", "username", "email"]);
+    //console.log("retornamos los datos", data)
     return data;
 }
 

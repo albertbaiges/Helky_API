@@ -30,6 +30,7 @@ app.post("/login", async (req, res) => {
     const {username, password} = req.body;
     const data = await authController.checkLogin(username, password);
     if (data.status === 1) {
+        console.log("Firmamos para el usuario", data)
         const accessToken = jwt.sign(data.user, process.env.ACCESS_TOKEN_SECRET);
         const user = {
             userID: data.user.userID,
@@ -40,6 +41,7 @@ app.post("/login", async (req, res) => {
                 iat: Date.now()
             }
         }
+        console.log("Usuario con firma", user)
         // const response = {username: data.user.username, jwt: accessToken}; // Warn deprecation of jwt?
         res.json(user);
     } else if (data.status === 0) {

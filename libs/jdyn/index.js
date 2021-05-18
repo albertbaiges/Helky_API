@@ -16,9 +16,10 @@ class JDyn {
 
     async _getItem(input) {
         try {
-            console.log("input", input)
+            //console.log("input", input)
             const getItemCommand = new DDB.GetItemCommand(input);
             const response = await this._client.send(getItemCommand);
+            // console.log("resouesta", response)
             const item = response.Item;
             return item && this.Converter.unmarshall(item); // Short-Circuit: item unmarshalled if exists or undefined if not
         } catch (err) {
@@ -27,6 +28,7 @@ class JDyn {
     }
 
     async getItem(tableName, key, projectionArray) {
+        //console.log("entramos a este get")
         try {
             const keyMarsh = this.Converter.marshall(key);
             let {projectionExpression, expressionAttributeNames} = this._buildProjection(projectionArray);
@@ -40,7 +42,7 @@ class JDyn {
             if (Object.keys(expressionAttributeNames).length !== 0) {
                 input.ExpressionAttributeNames = expressionAttributeNames
             }
-    
+            //console.log("antes de privado")
             return this._getItem(input);
         } catch (err) {
             throw err;
@@ -82,6 +84,7 @@ class JDyn {
     }
 
     async updateItem(tableName, key, update, manual) {
+        //console.log("clave", key)
         try {
             const keyMarsh = this.Converter.marshall(key);
 
@@ -99,7 +102,7 @@ class JDyn {
         
             const updateValuesMarsh = this.Converter.marshall(updateValues);
         
-        
+            //console.log("marshall key", keyMarsh)
             const input = {
                 TableName: tableName,
                 Key: keyMarsh,
@@ -107,6 +110,8 @@ class JDyn {
                 ExpressionAttributeValues: updateValuesMarsh,
                 ReturnValues: "UPDATED_NEW"
             }
+
+            //console.log("input", input)
         
         
             if(updateNames && Object.keys(updateNames).length !== 0) {
@@ -121,12 +126,28 @@ class JDyn {
 
     }
 
-    _deleteItem() {
-
+    async _deleteItem(input) {
+        try {
+            const deleteItemCommand = new DDB.DeleteItemCommand(input); 
+            const response = await this._client.send(deleteItemCommand);
+            return response;
+        } catch (err) {
+            throw err;
+        }
     }
 
-    deleteteItem() {
-
+    async deleteteItem(tableName, key) {
+        try {
+            const keyMarsh = this.Converter.marshall(key);
+            const input = {
+                TableName: tableName,
+                Key: keyMarsh
+            }
+            const response = await this._deleteItem(input);
+            return response;
+        } catch (err) {
+            throw err;
+        }
     }
 
     async _scan(input) {
@@ -181,7 +202,7 @@ class JDyn {
         const attributeNames = {};
         const attributeValues = {};
         for (const key in attributes) {
-            const expKey = (isNaN(key)) ? key : "#n" + key;
+            const expKey = (isNaN(key) || isNaN(key[0])) ? key : "#n" + key;
             // console.log("miramos diferencias", expKey, key)
             if (expKey !== key) {
                 // console.log("eran diferentes", expKey, key)

@@ -1,6 +1,6 @@
 
 
-const {Converter, users} = require("./db");
+const {Converter, users, jdyn} = require("./db");
 
 async function update(userID, data) {
     const fields = ["utype", "medicines", "disorders", "medics"];
@@ -14,6 +14,44 @@ async function update(userID, data) {
     if (data.medicines) {
         // console.log("cambiado")
         user.medicines = data.medicines;
+        console.log("Medicinas del usuario", user.medicines)
+        //update the plan
+        const planProjection = ["planID", "weekdays"];
+        const plan = await jdyn.getItem("plans", {planID: userID}, planProjection);
+        console.log("plan a actualizar", plan)
+        const weekdays = Object.values(plan.weekdays)
+        console.log("dias de la semana", weekdays);
+        const updatedWeekMedicines = {
+            weekdays: { }
+        }
+
+        weekdays.forEach(weekday => {
+            updatedWeekMedicines.weekdays[weekday.day] = {
+                medicines: plan.weekdays[weekday.day].medicines.filter(medicine => user.medicines.includes(medicine.code))
+            }
+        })
+
+        console.log("actualizacion", updatedWeekMedicines);
+
+        // const weekMedicines = weekdays.map(day => day.medicines);
+        // console.log("medicinas semanales", weekMedicines)
+        // weekMedicines.forEach(medicines => medicines.filter(medicine => user.medicines.includes(medicine.code)));
+        // console.log("medicinas semanales actualizadas", weekMedicines)
+
+        // const update = {
+        //     weekdays: { }
+        // }
+
+        // weekdays.forEach(weekday => {
+        //     update.weekdays[weekday.day] = {
+        //         medicines: weekday.medicines
+        //     }
+        // });
+
+        //console.log("actualizacion", update);
+
+        const response = await jdyn.updateItem("plans", {planID: plan.planID}, updatedWeekMedicines);
+
     }
 
     // console.log("nuevos datos", data)
