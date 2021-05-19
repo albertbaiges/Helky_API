@@ -12,6 +12,7 @@ router.get("", async (req, res) => {
         response = {error: "No users matched the filter"}
     }
     res.json(response)
+    console.log(response)
 });
 
 

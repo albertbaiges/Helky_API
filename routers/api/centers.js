@@ -8,23 +8,23 @@ const { centersMiddlewares } = require("../../middlewares")
 const router = express.Router();
 
 
-router.get("/:centerID/patients", async (req, res) => {
-    const {centerID} = req.params;
-    const data = await centersController.getPatients(centerID);
+router.get("/patients", async (req, res) => {
+    const {userID} = req.payload;
+    const data = await centersController.getPatients(userID);
     res.send(data);
 });
 
-router.get("/:centerID/medics", async (req, res) => {
-    const {centerID} = req.params;
-    const data = await centersController.getMedics(centerID);
+router.get("/medics", async (req, res) => {
+    const {userID} = req.payload;
+    const data = await centersController.getMedics(userID);
     res.send(data);
 });
 
-router.post("/:centerID/signmedic", centersMiddlewares.signMedicFields ,async (req, res) => {
+router.post("/signmedic", centersMiddlewares.signMedicFields ,async (req, res) => {
     try {
-        const {centerID} = req.params;
+        const {userID} = req.payload;
         const medic = req.body;
-        const data = await centersController.registerMedic(centerID, medic);
+        const data = await centersController.registerMedic(userID, medic);
         res.send(data);
     } catch (error) {
         return res.status(400).json({"Error": error.message});

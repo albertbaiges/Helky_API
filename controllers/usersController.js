@@ -1,6 +1,6 @@
 
 
-const {Converter, users, jdyn} = require("./db");
+const {jdyn} = require("./db");
 const cryptography = require("../utils/cryptography");
 const registersController = require("./registersController");
 
@@ -18,44 +18,24 @@ async function getUser(userID) {
 }
 
 
-async function getDisorders(userID) {
-    const projection = ["userID", "username", "email", "disorders"];
-    // const userDisorders = await users.getFromUser(userID, projection);
-    console.log("usando a jdyn")
-    const key = {userID};
-    const userDisorders = jdyn.getItem("users", key, projection);
-    return userDisorders;
-}
-
-async function getMedicines(userID) {
-    const projection = ["userID", "username", "email", "medicines"];
-
-    console.log("usando a jdyn")
-    const key = {userID};
-    // const data = await users.getFromUser(userID, fields);
-    const userMedicines = jdyn.getItem("users", key, projection);
-    return userMedicines;
-}
 
 
-async function getMedics(userID) {
-    const projection = ["userID", "username", "email", "medics"];
-    const key = {userID};
-    console.log("usando a jdyn")
-    const userMedics = jdyn.getItem("users", key, projection);
-    // const userMedics = await users.getFromUser(userID, projection);
-    return userMedics;
-}
 
-async function getCenters(userID) {
-    const projection = ["userID", "username", "email", "centers"];
-    // const userMedics = await users.getFromUser(userID, projection);
-    const key = {userID};
-    const userCenters = jdyn.getItem("users", key, projection);
-    return userCenters;
-}
+
+
 
 async function update(userID, updateValue) {
+
+    if (updateValue.email) {
+        const filter = {
+            email: updateValue.email
+        }
+        const users = await jdyn.scan("users", ["userID", "email"], filter);
+        if (users.length && !users.map(user => user.userID).includes(userID)) {
+            throw new Error("Email already taken")
+        }
+    }
+
     let projection = ["userID", "username", "patients", "medics", "centers", "utype", "disorders"];
     // const userData = await users.getFromUser(userID, projection);
     const userData = await jdyn.getItem("users", {userID}, projection);
@@ -257,16 +237,16 @@ async function handleRelation(userID, petition) {
         //Ponerselos en notifications del target
         targetUser.notifications.requests.push(user);
 
-        await users.update(petition.target, targetUser);
+        await jdyn.updateItem("users", {userID: petition.target}, targetUser);
 
         const targetDataProjection = ["userID", "username", "email", "utype"];
-        data = users.getFromUser(petition.target, targetDataProjection)
+        data = await jdyn.getItem("users", {userID: petition.target}, targetDataProjection);
 
     } else if (petition.action === "accept") {
 
         //Coger los datos de nuestro usuario y notificaciones
         const userProjection = ["userID", "username", "email", "notifications", "utype"];
-        const user = await users.getFromUser(userID, userProjection);
+        const user = await jdyn.getItem("users", {userID}, userProjection);
 
         //Coger los datos del otro usuario de la notificacion
         const targetUser = user.notifications.requests.find(user => user.userID === petition.target);
@@ -293,6 +273,9 @@ async function handleRelation(userID, petition) {
         if (targetUser.utype === "patient") {
             delete targetUser.utype;
             update.updateExpression = "patients.#id=:id";
+            const projection = ["userID", "username", "email", "medicines", "disorders"];
+            const data = await jdyn.getItem("users", {userID: targetUser.userID}, projection);
+            update.updateValues[":id"] = data;
         } else if (targetUser.utype === "medic") {
             delete targetUser.utype;
             update.updateExpression= "medics.#id=:id";
@@ -314,6 +297,8 @@ async function handleRelation(userID, petition) {
 
         //Añadirnos a nosotros al grupo que toque del otro usuario
 
+        delete user.notifications;
+        
         let  targetUpdate = {
             updateValues: {
                 ":id": user
@@ -326,7 +311,7 @@ async function handleRelation(userID, petition) {
         if (user.utype === "patient") {
             delete user.utype;
             const projection = ["userID", "username", "email", "medicines", "disorders"];
-            const data = await users.getFromUser(user.userID, projection);
+            const data = await jdyn.getItem("users", {userID: user.userID}, projection);
             targetUpdate.updateValues[":id"] = data;
             targetUpdate.updateExpression = "patients.#id=:id";
         } else if (user.utype === "medic") {
@@ -372,10 +357,6 @@ async function handleRelation(userID, petition) {
 
 module.exports = {
     getUser,
-    getDisorders,
-    getMedicines,
-    getMedics,
-    getCenters,
     update,
     getNotifications,
     handleRelation

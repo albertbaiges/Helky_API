@@ -1,3 +1,29 @@
+const { centersController, medicsController } = require("../controllers");
+
+
+
+async function planInfo(req, res, next) {
+    const {planID} = req.params;
+    if (req.payload.utype === "patient" && planID !== req.payload.userID) {
+        return res.status("403").json({message: "Cannot access the plan of other patients"});
+    } else if (req.payload.utype === "medic") {
+        const {patients} = await medicsController.getPatients(req.payload.userID);
+        const patientsIDs = Object.values(patients).map(patient => patient.userID);
+        if (!patientsIDs.includes(planID)) {
+            return res.status("403").json({message: "Cannot access the register, it is not an associated patient"});
+        }
+    } else if (req.payload.utype === "center") {
+        const {patients} = await centersController.getPatients(req.payload.userID);
+        const patientsIDs = Object.values(patients).map(patient => patient.userID);
+        if (!patientsIDs.includes(planID)) {
+            return res.status("403").json({message: "Cannot access the register, it is not an associated patient"});
+        }
+    }
+    next();
+}
+
+
+
 
 function patchMeals(req, res, next) {
     const {body} = req;
@@ -108,6 +134,7 @@ function patchActivities(req, res, next) {
 
 
 module.exports = {
+    planInfo,
     patchMeals,
     patchMedicines,
     patchActivities

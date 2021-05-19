@@ -6,7 +6,7 @@ const {plansMiddlewares} = require("../../middlewares");
 const router = express.Router();
 
 
-router.get("/:planID/meals", async (req, res) => {
+router.get("/:planID/meals", plansMiddlewares.planInfo,async (req, res) => {
     const {planID} = req.params;
     const data = await plansController.getMealPlan(planID);
     console.log(data)
@@ -43,7 +43,7 @@ router.patch("/:planID/meals", plansMiddlewares.patchMeals, async (req, res) => 
     res.json(data);
 });
 
-router.get("/:planID/medicines", async (req, res) => {
+router.get("/:planID/medicines", plansMiddlewares.planInfo, async (req, res) => {
     const {planID} = req.params;
     const data = await plansController.getMedicines(planID);
     res.json(data);
@@ -62,7 +62,7 @@ router.patch("/:planID/medicines", plansMiddlewares.patchMedicines, async (req, 
 });
 
 
-router.get("/:planID/activities", async (req, res) => {
+router.get("/:planID/activities", plansMiddlewares.planInfo, async (req, res) => {
     const {planID} = req.params;
     const data = await plansController.getActivities(planID);
     console.log(data)

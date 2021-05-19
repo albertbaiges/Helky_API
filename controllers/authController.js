@@ -1,23 +1,20 @@
 
 
-const { response } = require("express");
 const crypto = require("../utils/cryptography");
-const {users, jdyn} = require("./db");
+const {jdyn} = require("./db");
 const { Patient } = require("../models");
-
-/***************/
-let lastId = 1; // For now it must be manually updated everytime the app is openened
-/**************/
+const md5 = require("md5");
 
 
-async function checkLogin(username, password) {
+async function checkLogin(email, password) {
     const response = {status: -1};
-    const query = "username = :username";
-    const queryParams = {
-        ":username": username
+
+    const filter = {
+        email
     }
-    const fields = ["userID", "username", "password", "salt", "utype"];
-    const data = await users.queryUser(query, queryParams, fields);
+
+    const projection = ["userID", "username", "password", "salt", "utype"];
+    const data = await jdyn.scan("users", projection, filter);
     if (data.length) { // Check if there is any data (implies there is a match for user)
         const userData = data[0]; //There can only be one, queried field is unique
         if (crypto.encrypt(password, userData.salt) === userData.password) {
@@ -35,7 +32,6 @@ async function checkLogin(username, password) {
 }
 
 async function registerUser(user){
-
     //Verificar que no haya ya un usuario con este email
 
     // const query = "email = :email";
@@ -56,12 +52,14 @@ async function registerUser(user){
         throw new Error("Email in use")
     }
 
-    const userID = (Date.now()).toString(16);
+    const now = Date.now();
+    const hex = now.toString(16)
+    const userID = md5(hex);
     
     const patient = new Patient(userID, user.username, user.email, user.password);
     // //PutItem
 
-    await users.put(patient);
+    await jdyn.putItem("users", patient)
 
     const projection = ["userID", "username", "email", "utype"];
     

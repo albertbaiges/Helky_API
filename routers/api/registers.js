@@ -7,10 +7,11 @@ const {registersMiddlewares} = require("../../middlewares");
 
 // Creates a register document (must be a valid document) //! Control other people cannot create it for you (middleware)
 
-router.post("", async (req, res) => {
+router.post("", registersMiddlewares.createRegister ,async (req, res) => {
     try {        
-        const {patientID, family} = req.body;
-        const data = await registersController.createRegister(patientID, family);
+        const {userID} = req.payload;
+        const {family} = req.body;
+        const data = await registersController.createRegister(userID, family);
         res.json(data);
     } catch (error) {
         return res.status(400).json({"Error": error.message});   
@@ -43,7 +44,8 @@ router.get("/supported", async (req, res) => {
     res.json(data);
 });
 
-router.get("/:registerID", async (req, res) => {
+router.get("/:registerID", registersMiddlewares.registerInfo, async (req, res) => {
+    console.log("procesando la peticion")
     try {
         console.log("Nuevo endpoint registros");
         const {registerID} = req.params;
@@ -56,7 +58,7 @@ router.get("/:registerID", async (req, res) => {
 
 });
 
-router.get("/:registerID/tracking", async (req, res) => {
+router.get("/:registerID/tracking", registersMiddlewares.registerInfo, async (req, res) => {
     try {
         console.log("Nuevo endpoint tracking registros");
         const {registerID} = req.params;

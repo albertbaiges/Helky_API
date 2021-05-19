@@ -27,8 +27,8 @@ app.use("/api", apiRouter);
 //! Mirar si cambiar el login a email-password
 // 404 Not Registered - 401 Bad User-Password 
 app.post("/login", async (req, res) => {
-    const {username, password} = req.body;
-    const data = await authController.checkLogin(username, password);
+    const {email, password} = req.body;
+    const data = await authController.checkLogin(email, password);
     if (data.status === 1) {
         console.log("Firmamos para el usuario", data)
         const accessToken = jwt.sign(data.user, process.env.ACCESS_TOKEN_SECRET);
@@ -45,9 +45,9 @@ app.post("/login", async (req, res) => {
         // const response = {username: data.user.username, jwt: accessToken}; // Warn deprecation of jwt?
         res.json(user);
     } else if (data.status === 0) {
-        res.sendStatus(401).statusMessage("Invalid password");
+        res.status(401).json({Error: "Invalid password"});
     } else if (data.status === -1) {
-        res.sendStatus(400).statusMessage("Not registered");
+        res.status(400).json({Error: "Not registered"});
     }
 });
 

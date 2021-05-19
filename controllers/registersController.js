@@ -1,12 +1,23 @@
 
 
 const md5 = require("md5");
-const {registers, Converter, users, jdyn} = require("./db");
+const {jdyn} = require("./db");
 
 let lastRegisterID = 1;
 
 function getSupported() {
-    return ["Diabetes", "High Blood Preassure"];
+    return ["diabetes", "high blood preassure"];
+}
+
+async function getRegisterPatient(registerID) {
+    const projection = ["patient"];
+    try {
+        const key = {registerID};
+        const data = jdyn.getItem("registers", key, projection);
+        return data;
+    } catch (err) {
+        throw err;
+    }
 }
 
 async function getRegister(registerID) {
@@ -124,12 +135,12 @@ async function addTrackingEvent(registerID, event) {
     const tracking = `tracking.${year}.${month}.${day}`;
     let projection = ["registerID", "patient", tracking];
 
-    const data = await registers.get(registerID, projection);
+    const data = await jdyn.getItem("registers", {registerID}, projection);
 
     let aux = 3;
     while(!data.tracking) {
         projection = [tracking.split(".").slice(0, aux).join(".")];
-        const temp = await registers.get(registerID, projection);
+        const temp = await jdyn.getItem("registers", {registerID}, projection);
         data.tracking = temp.tracking;
         aux--;
     }
@@ -227,6 +238,7 @@ async function addTrackingEvent(registerID, event) {
 
 module.exports = {
     getSupported,
+    getRegisterPatient,
     getRegister,
     getTracking, 
     createRegister,

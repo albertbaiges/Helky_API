@@ -1,5 +1,6 @@
-const { users, jdyn } = require("./db");
+const { jdyn } = require("./db");
 const { Medic } = require("../models");
+const md5 = require("md5");
 
 function getPatients(userID) {
     const projection = ["userID", "username", "email", "patients"];
@@ -33,7 +34,9 @@ async function registerMedic(centerID, medic) {
         throw new Error("Email in use")
     }
 
-    const userID = (Date.now()).toString(16);
+    const now = Date.now();
+    const hex = now.toString(16)
+    const userID = md5(hex);
         
     const medicUser = new Medic(userID, medic.username, medic.email, medic.password);
     
@@ -49,7 +52,6 @@ async function registerMedic(centerID, medic) {
 
     //PutItem
 
-    await users.put(medicUser);
     await jdyn.putItem("users", medicUser)
     
     const projection = ["userID", "username", "email"];

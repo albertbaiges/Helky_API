@@ -161,24 +161,33 @@ class JDyn {
         }
     }
 
-    async scan(tableName, projectionArr, filter) {
+    async scan(tableName, projectionArr, filter, wildcard) {
+        console.log(tableName, projectionArr, filter, wildcard)
         let {projectionExpression, expressionAttributeNames} = this._buildProjection(projectionArr);
         const { expressionArr, attributeNames, attributeValues } = this._buildInputs(filter);
         
         const filterValuesMarsh = this.Converter.marshall(attributeValues);
-        const wildcardFormat = expressionArr.map(filterExpression => {
-            const formated = filterExpression.replace("=", ",");
-            return `contains(${formated})`;
-        });
-        const wildcardData = wildcardFormat.join(" AND ");
+
+        let filterExpression;
+        if (wildcard) {
+            const wildcardFormat = expressionArr.map(filterExpression => {
+                const formated = filterExpression.replace("=", ",");
+                return `contains(${formated})`;
+            });
+            filterExpression = wildcardFormat.join(" AND ");
+        } else {
+            filterExpression = expressionArr.join(" AND ");
+        }
+
 
         const input = {
             TableName: tableName,
             ProjectionExpression: projectionExpression,
-            FilterExpression: wildcardData,
+            FilterExpression: filterExpression,
             ExpressionAttributeValues: filterValuesMarsh
         }
     
+
         if (Object.keys(expressionAttributeNames).length !== 0) {
             input.ExpressionAttributeNames = expressionAttributeNames
         }

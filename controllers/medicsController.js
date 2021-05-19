@@ -1,5 +1,5 @@
 
-const { users, jdyn } = require("./db")
+const { jdyn } = require("./db")
 
 async function getPatients(userID) {
     const projection = ["userID", "username", "email", "patients"]
@@ -11,7 +11,17 @@ async function getPatients(userID) {
     return patients;
 }
 
+async function getCenters(userID) {
+    const projection = ["userID", "username", "email", "centers"];
+    // const userMedics = await users.getFromUser(userID, projection);
+    const key = {userID};
+    const userCenters = jdyn.getItem("users", key, projection);
+    return userCenters;
+}
+
+
 
 module.exports = {
-    getPatients
+    getPatients,
+    getCenters
 };

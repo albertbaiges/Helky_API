@@ -1,6 +1,6 @@
 
 const usersController = require("./usersController");
-const { plans, jdyn } = require("./db"); 
+const { jdyn } = require("./db"); 
 
 async function getMealPlan(planID) {
     const projection = ["patient", "weekdays"];
