@@ -35,7 +35,7 @@ async function createRegister(req, res, next) {
         return res.status("400").json({message: `Can only create registers for ${supported}`});
     }
 
-    const {disorders} = await patientsController.getDisorders(payload.userID);
+    const {disorders} =  await patientsController.getDisorders(payload.userID);
     const registeredDisorder = Object.values(disorders).find(disorder => disorder.family === family);
 
     if(!registeredDisorder) {

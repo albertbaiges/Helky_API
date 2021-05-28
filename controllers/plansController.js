@@ -7,7 +7,14 @@ async function getMealPlan(planID) {
     try {
         // const data = await plans.get(planID, fields);
         const key = {planID};
-        const data = jdyn.getItem("plans", key, projection);
+        const data = await jdyn.getItem("plans", key, projection);
+        for(let day in data.weekdays){
+            data.weekdays[day] = {
+                day,
+                meals: data.weekdays[day].meals
+            }
+        }
+        console.log("Data to return", data)
         return data;
     } catch (error) {
         console.error("Something went wrong", error);
@@ -38,7 +45,9 @@ async function updateMeals(planID, data) {
     const update = {
         weekdays: {
             [data.day]: {
-                [data.meal]: data.info
+                meals: {
+                    [data.meal]: data.info
+                }
             }
         }
     }

@@ -48,46 +48,6 @@ async function update(userID, updateValue) {
     }
     //
     
-    //Handle disorders update
-    if(updateValue.disorders) {
-        const updatedDisorders = [];
-        console.log("emfermedades del paciente", userData.disorders)
-        console.log("emfermedades nuevas del pacienet", updateValue.disorders)
-        for (let disorder of updateValue.disorders) {
-            console.log("Enfermedad", disorder)
-            const storedDisorder = userData.disorders.find(storedDisorder => {
-                return storedDisorder.family === disorder.family && storedDisorder.type === disorder.type;
-            });
-
-            console.log("stored disorder", storedDisorder)
-            const index = userData.disorders.indexOf(storedDisorder);
-            console.log("esta en el indice", index)
-            userData.disorders.splice(userData.disorders.indexOf(storedDisorder), 1);
-            
-            if (storedDisorder) {
-                console.log("lo tenemos y lo copiamos")
-                updatedDisorders.push(storedDisorder);
-            } else {
-                if (registersController.getSupported().includes(updateValue)) {
-                    disorder.registerID = null;
-                }
-                updatedDisorders.push(disorder);
-            }
-        }
-        updateValue.disorders = updatedDisorders;
-        console.log("Los nuevos disorders son", updateValue.disorders)
-
-
-
-        //Borrar el plan de los disorders borrados
-        console.log("********las enfermedades que no se mantienen son", userData.disorders)
-        userData.disorders.forEach(async disorder => {
-            if (disorder.registerID) {
-                console.log("vamos a borrar el registro", disorder.registerID)
-                await jdyn.deleteteItem("registers", {registerID: disorder.registerID});
-            }
-        });
-    }
 
 
 

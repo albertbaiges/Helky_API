@@ -6,7 +6,7 @@ const {jdyn} = require("./db");
 let lastRegisterID = 1;
 
 function getSupported() {
-    return ["diabetes", "high blood preassure"];
+    return ["diabetes", "blood pressure"];
 }
 
 async function getRegisterPatient(registerID) {
@@ -21,7 +21,7 @@ async function getRegisterPatient(registerID) {
 }
 
 async function getRegister(registerID) {
-    const projection = ["registerID", "disorder", "patient"];
+    const projection = ["registerID", "disorder", "disorderFamily", "patient"];
     console.log("procesando este")
     try {
         // const data = await registers.getFromRegister(registerID, projection);
@@ -57,8 +57,8 @@ async function createRegister(userID, family) {
 
     const item = {
         registerID,
-        disorder: disorderInfo.family,
-        case: disorderInfo.type,
+        disorderFamily: disorderInfo.family,
+        disorder: disorderInfo.type,
         patient,
         tracking: { }
     }
@@ -115,7 +115,7 @@ async function getTracking(registerID, month, year) {
         year = date.getFullYear();
     }
 
-    const projection = [`tracking.${year}.${month}`, "patient"];
+    const projection = [`tracking.${year}.${month}`, "patient", "disorder", "disorderFamily"];
     // const data = await registers.get(registerID, projection);
     const key = {registerID};
     const data = jdyn.getItem("registers", key, projection)

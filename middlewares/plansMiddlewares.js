@@ -78,16 +78,16 @@ function patchMedicines(req, res, next) {
     if (!body.medicines || body.medicines.constructor !== Array) {
         console.log("nos saca el primero")
         response.medicines = `Array of entries must be provided`;
-        response.entry = "{ code: Number (spanish medicine register code), at: hh:mm:ss | [hh:mm:ss] }"
+        response.entry = "{ code: String (spanish medicine register code), at: hh:mm:ss | [hh:mm:ss] }"
         invalid = true;
     } else {
-        const check = body.medicines.every(entry => entry.code && entry.code.constructor === Number && entry.at &&
+        const check = body.medicines.every(entry => entry.code && entry.code.constructor === String && entry.at &&
                                                     (entry.at.constructor === String || entry.at.constructor === Array));
         
         if (!check) {
             console.log("nos echa este")
             response.medicines = `Array of entries must be provided`;
-            response.entry = "{ code: Number (spanish medicine register code), at: hh:mm:ss | [hh:mm:ss] }"
+            response.entry = "{ code: String (spanish medicine register code), at: hh:mm:ss | [hh:mm:ss] }"
             invalid = true;
         }
     }

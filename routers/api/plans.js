@@ -9,22 +9,28 @@ const router = express.Router();
 router.get("/:planID/meals", plansMiddlewares.planInfo,async (req, res) => {
     const {planID} = req.params;
     const data = await plansController.getMealPlan(planID);
-    console.log(data)
     if (data) {
         const {day, slot} = req.query;
-        if(day && slot) {
-            console.log(data);
-            data.weekdays[day] = data.weekdays[day][slot];
-            data.weekdays = {[day]: data.weekdays[day]}
-            res.json(data);
-        } else { //Remove all the comments and return only what is important
-            for (const day in data.weekdays) {
-                for (const slot in data.weekdays[day]) {
-                    if (slot === "day")
-                        continue;
-                    data.weekdays[day][slot] = data.weekdays[day][slot].menu;
+        if(day) {
+            console.log(data)
+            data.weekdays = {
+                day: data.weekdays[day].day,
+                [day]: data.weekdays[day].meals
+                }
+            if(slot){
+                data.weekdays = {[day]: data.weekdays[day][slot],
                 }
             }
+            res.json(data);
+        } else { //Remove all the comments and return only what is important
+            console.log("before mapping", data)
+            for (const day in data.weekdays) {
+                for (const slot in data.weekdays[day].meals) {
+                    console.log("slot", slot)
+                    data.weekdays[day].meals[slot] = data.weekdays[day].meals[slot].menu;
+                }
+            }
+            console.log("data to return2", data)
             res.json(data);
         }
     } else {
@@ -46,6 +52,10 @@ router.patch("/:planID/meals", plansMiddlewares.patchMeals, async (req, res) => 
 router.get("/:planID/medicines", plansMiddlewares.planInfo, async (req, res) => {
     const {planID} = req.params;
     const data = await plansController.getMedicines(planID);
+    const {day} = req.query;
+    if (day) {
+        data.weekdays = {[day]: data.weekdays[day]}
+    }
     res.json(data);
 });
 
@@ -72,6 +82,7 @@ router.get("/:planID/activities", plansMiddlewares.planInfo, async (req, res) =>
             data.weekdays = {[day]: data.weekdays[day]}
             res.json(data);
         } else { //Remove all the comments and return only what is important
+            console.log("before sending the data", data)
             for (const day in data.weekdays) {
                 for(const slot in data.weekdays[day]) {
                     if(slot === "day")

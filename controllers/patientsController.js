@@ -1,12 +1,11 @@
 
 
 const {jdyn} = require("./db");
-
+const registersController = require("./registersController");
 
 async function getDisorders(userID) {
     const projection = ["userID", "username", "email", "disorders"];
     // const userDisorders = await users.getFromUser(userID, projection);
-    console.log("usando a jdyn")
     const key = {userID};
     const userDisorders = jdyn.getItem("users", key, projection);
     return userDisorders;
@@ -41,16 +40,13 @@ async function getCenters(userID) {
 
 
 async function update(userID, data) {
-    const fields = ["utype", "medicines", "disorders", "medics"];
+    //Cogemos el paciente y sus campos
+    const fields = ["medicines", "disorders", "medics", "centers"];
     const user = await jdyn.getItem("users", {userID}, fields);
 
-    if(user.utype !== "patient")
-        return {Error: "Not allowed"}
 
-    delete user.utype;
-
+    //Si los datos recibidos tienen medicinas
     if (data.medicines) {
-        // console.log("cambiado")
         user.medicines = data.medicines;
         console.log("Medicinas del usuario", user.medicines)
         //update the plan
@@ -70,48 +66,73 @@ async function update(userID, data) {
         })
 
         console.log("actualizacion", updatedWeekMedicines);
-
-        // const weekMedicines = weekdays.map(day => day.medicines);
-        // console.log("medicinas semanales", weekMedicines)
-        // weekMedicines.forEach(medicines => medicines.filter(medicine => user.medicines.includes(medicine.code)));
-        // console.log("medicinas semanales actualizadas", weekMedicines)
-
-        // const update = {
-        //     weekdays: { }
-        // }
-
-        // weekdays.forEach(weekday => {
-        //     update.weekdays[weekday.day] = {
-        //         medicines: weekday.medicines
-        //     }
-        // });
-
-        //console.log("actualizacion", update);
-
+        //Quitamos las medicinas del calendario
         const response = await jdyn.updateItem("plans", {planID: plan.planID}, updatedWeekMedicines);
-
     }
 
-    // console.log("nuevos datos", data)
-    delete user.disorders;
+    //Si recibimos enfermedades
+    if(data.disorders) {
+        //Array de nuevas enfermedades
+        const updatedDisorders = [];
+        //Recorremos el array de enfermedades
+        for (let disorder of data.disorders) {
+            console.log("Enfermedad", disorder)
+            const storedDisorder = user.disorders.find(storedDisorder => {
+                return storedDisorder.family === disorder.family && storedDisorder.type === disorder.type;
+            });
 
-    const response = await jdyn.updateItem("users", {userID}, user);
+            user.disorders.splice(user.disorders.indexOf(storedDisorder), 1);
+            
+
+
+            if (storedDisorder) {
+                console.log("lo tenemos y lo copiamos", storedDisorder)
+                updatedDisorders.push(storedDisorder);
+            } else {
+                if (registersController.getSupported().includes(data)) {
+                    disorder.registerID = null;
+                }
+                updatedDisorders.push(disorder);
+            }
+        }
+
+        user.disorders.forEach(async disorder => {
+            if (disorder.registerID) {
+                await jdyn.deleteteItem("registers", {registerID: disorder.registerID});
+            }
+        });
+        
+        user.disorders = updatedDisorders;
+    }
+
+    const userUpdate = {
+        medicines: user.medicines,
+        disorders: user.disorders
+    }
+    //Actualizamos el usuario
+    const response = await jdyn.updateItem("users", {userID}, userUpdate);
     // console.log("la respuesta es", response);
 
-    const medicUpdate = {
+    const medic_centerUpdate = {
         patients: {
             [userID]: {
-                medicines: response.medicines
+                medicines: response.medicines,
+                disorders: response.disorders
             }
         }
     }
 
     const medics = Object.values(user.medics);
     medics.forEach(async medic => {
-        const response = await jdyn.updateItem("users", {userID: medic.userID}, medicUpdate);
+        await jdyn.updateItem("users", {userID: medic.userID}, medic_centerUpdate);
     });
 
-    return {userID, medicines: response.medicines};
+    const centers = Object.values(user.centers);
+    centers.forEach(async center => {
+        await jdyn.updateItem("users", {userID: center.userID}, medic_centerUpdate);
+    });
+
+    return {userID, medicines: response.medicines, disorders: response.disorders};
 }
 
 module.exports = {

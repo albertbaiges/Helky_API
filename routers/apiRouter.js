@@ -16,18 +16,18 @@ function authenticateJWT(req, res, next) {
         token = header.split(" ")[1];
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, payload) => {
             if (err) {
-                return res.sendStatus("403");
+                return res.status(403).json({JWT: "Invalid JWT"});
             }
             req.payload = payload;
             next();
         });
     } else {
-        return res.sendStatus("401")
+        return res.status(401).json({JWT: "Bearer token authorization must be provided"})
     }
 }
 
 
-router.use("/patient", patients);
+router.use("/patient", patientsMiddlewares.patientPath, patients);
 router.use("/registers", registers);
 router.use("/plans", plans);
 router.use("/medic", medicsMiddlewares.medicPath, medics);

@@ -83,9 +83,11 @@ async function registerUser(user){
         plan.weekdays[day] = {
             day,
             activities: {},
-            breakfast: {},
-            dinner: {},
-            lunch: {},
+            meals: {
+                breakfast: {},
+                dinner: {},
+                lunch: {},
+            },
             medicines: []
         }
     }

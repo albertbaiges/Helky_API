@@ -5,7 +5,7 @@ const cors = require('cors');
 const {apiRouter} = require("./routers");
 const jwt = require("jsonwebtoken"); // JWT
 const { authController } = require("./controllers")
-
+const { authMiddlewares } = require("./middlewares")
 
 require("dotenv").config()
 
@@ -26,7 +26,7 @@ app.use("/api", apiRouter);
 
 //! Mirar si cambiar el login a email-password
 // 404 Not Registered - 401 Bad User-Password 
-app.post("/login", async (req, res) => {
+app.post("/login", authMiddlewares.loginFields, async (req, res) => {
     const {email, password} = req.body;
     const data = await authController.checkLogin(email, password);
     if (data.status === 1) {
@@ -51,7 +51,7 @@ app.post("/login", async (req, res) => {
     }
 });
 
-app.post("/signup", async (req, res) => {
+app.post("/signup", authMiddlewares.registerFields, async (req, res) => {
     try {
         const user = req.body;
         const data = await authController.registerUser(user);
