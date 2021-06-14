@@ -22,27 +22,33 @@ app.use("/api", apiRouter);
 
 // 404 Not Registered - 401 Bad User-Password 
 app.post("/login", authMiddlewares.loginFields, async (req, res) => {
-    const {email, password} = req.body;
-    const data = await authController.checkLogin(email, password);
-    if (data.status === 1) {
-        console.log("Firmamos para el usuario", data)
-        const accessToken = jwt.sign(data.user, process.env.ACCESS_TOKEN_SECRET);
-        const user = {
-            userID: data.user.userID,
-            username: data.user.username,
-            utype: data.user.utype,
-            authorization: {
-                jwt: accessToken,
-                iat: Date.now()
+    try {
+        const {email, password} = req.body;
+        const data = await authController.checkLogin(email, password);
+        if (data.status === 1) {
+            console.log("Firmamos para el usuario", data)
+            const accessToken = jwt.sign(data.user, process.env.ACCESS_TOKEN_SECRET);
+            const user = {
+                userID: data.user.userID,
+                username: data.user.username,
+                utype: data.user.utype,
+                authorization: {
+                    jwt: accessToken,
+                    iat: Date.now()
+                }
             }
+            console.log("Usuario con firma", user)
+            // const response = {username: data.user.username, jwt: accessToken}; // Warn deprecation of jwt?
+            res.json(user);
+        } else if (data.status === 0) {
+            res.status(401).json({Error: "Invalid password"});
+        } else if (data.status === -1) {
+            res.status(400).json({Error: "Not registered"});
+        } else {
+            res.status(500).json({Error: "Unknown behaviour of the server"});
         }
-        console.log("Usuario con firma", user)
-        // const response = {username: data.user.username, jwt: accessToken}; // Warn deprecation of jwt?
-        res.json(user);
-    } else if (data.status === 0) {
-        res.status(401).json({Error: "Invalid password"});
-    } else if (data.status === -1) {
-        res.status(400).json({Error: "Not registered"});
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
     }
 });
 
@@ -52,7 +58,7 @@ app.post("/signup", authMiddlewares.registerFields, async (req, res) => {
         const data = await authController.registerUser(user);
         res.json(data);
     } catch (error) {
-        return res.status(400).json({"Error": error.message});
+        return res.status(500).json({"Error": error.message});
     }
 });
 
