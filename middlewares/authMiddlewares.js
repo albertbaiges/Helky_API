@@ -37,6 +37,9 @@ function registerFields(req, res, next) {
     if (!body.email || body.email.constructor !== String) {
         response.email = "String type email must be provided";
         invalid = true;
+    }  else if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/.test(body.email)) {
+        response.email = "Invalid email";
+        invalid = true;
     }
 
     if (!body.password || body.password.constructor !== String) {

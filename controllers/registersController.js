@@ -22,9 +22,7 @@ async function getRegisterPatient(registerID) {
 
 async function getRegister(registerID) {
     const projection = ["registerID", "disorder", "disorderFamily", "patient"];
-    console.log("procesando este")
     try {
-        // const data = await registers.getFromRegister(registerID, projection);
         const key = {registerID};
         const data = jdyn.getItem("registers", key, projection);
         return data;
@@ -173,10 +171,6 @@ async function addTrackingEvent(registerID, event) {
         }
     
     
-    // If we do not have anything:
-        // PutItem info as new month and add month timestamp on the shoot
-        // console.log("update", update.tracking[year][month])
-        // response = await registers.update(registerID, update, false);
         const key = {registerID};
         response = await jdyn.updateItem("registers", key, update);
     } else {

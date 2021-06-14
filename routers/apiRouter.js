@@ -36,3 +36,5 @@ router.use("/center", centersMiddlewares.centerPath, centers);
 router.use("/search", searches);
 
 module.exports = router;
+
+

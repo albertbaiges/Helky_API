@@ -45,15 +45,12 @@ router.get("/supported", async (req, res) => {
 });
 
 router.get("/:registerID", registersMiddlewares.registerInfo, async (req, res) => {
-    console.log("procesando la peticion")
     try {
-        console.log("Nuevo endpoint registros");
         const {registerID} = req.params;
-        console.log("registro", registerID)
         const data = await registersController.getRegister(registerID);
         res.json(data);        
     } catch (error) {
-        return res.status(400).json({"Error": error.message});
+        return res.status(500).json({"Error": error.message});
     }
 
 });
@@ -66,7 +63,7 @@ router.get("/:registerID/tracking", registersMiddlewares.registerInfo, async (re
         const data = await registersController.getTracking(registerID, month, year);
         res.json(data);
     } catch (error) {
-        return res.status(400).json({"Error": error.message});
+        return res.status(500).json({"Error": error.message});
     }
 
 });

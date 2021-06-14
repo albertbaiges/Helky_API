@@ -10,21 +10,16 @@ const { authMiddlewares } = require("./middlewares")
 require("dotenv").config()
 
 
-
-
-
-
 app.listen(3000, () => console.log("Server listening...."));
 
 // High Level Middlewares
-app.use(cors()); // for parsing application/json
+app.use(cors()); // enabling CORS
 app.use(express.json()) // for parsing application/json
 app.use(pathLogger); // Get logs of the application
 
 // ROUTERS
 app.use("/api", apiRouter);
 
-//! Mirar si cambiar el login a email-password
 // 404 Not Registered - 401 Bad User-Password 
 app.post("/login", authMiddlewares.loginFields, async (req, res) => {
     const {email, password} = req.body;
