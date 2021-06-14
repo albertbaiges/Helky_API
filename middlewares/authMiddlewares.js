@@ -45,7 +45,9 @@ function registerFields(req, res, next) {
     if (!body.password || body.password.constructor !== String) {
         response.password = "String type password must be provided";
         invalid = true;
-
+    } else if (!/^(?=.*[A-Z])(?=.*\d)[\w]{8,}$/.test(body.password)) {
+        response.password = "Invalid password";
+        invalid = true;
     }
 
     if (invalid) {
