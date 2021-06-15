@@ -68,7 +68,7 @@ router.get("/:registerID/tracking", registersMiddlewares.registerInfo, async (re
 
 });
 
-router.patch("/:registerID/tracking", registersMiddlewares.patchTracking, async (req, res) => {
+router.patch("/:registerID/tracking", registersMiddlewares.registerInfo, registersMiddlewares.patchTracking, async (req, res) => {
     try {
         const event = req.body;
         const {registerID} = req.params;

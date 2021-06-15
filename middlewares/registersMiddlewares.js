@@ -48,10 +48,18 @@ async function createRegister(req, res, next) {
     next();
 }
 
-function patchTracking(req, res, next) {
+async function patchTracking(req, res, next) {
     const {body} = req;
     let invalid = false;
     const response = {};
+    const {registerID} = req.params;
+
+    const {patient: registerPatient} = await registersController.getRegisterPatient(registerID);
+
+    if(registerPatient.userID !== req.payload.userID) {
+        response.data = `Only the patient can add lectures to registers`;
+        return res.status("403").json(response);
+    }
 
     if (!body.data || body.data.constructor !== Number) {
         response.data = `Number must be provided`;
