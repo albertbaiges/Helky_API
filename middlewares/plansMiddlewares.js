@@ -10,13 +10,13 @@ async function planInfo(req, res, next) {
         const {patients} = await medicsController.getPatients(req.payload.userID);
         const patientsIDs = Object.values(patients).map(patient => patient.userID);
         if (!patientsIDs.includes(planID)) {
-            return res.status("403").json({message: "Cannot access the register, it is not an associated patient"});
+            return res.status("403").json({message: "Cannot access the plan, it is not an associated patient"});
         }
     } else if (req.payload.utype === "center") {
         const {patients} = await centersController.getPatients(req.payload.userID);
         const patientsIDs = Object.values(patients).map(patient => patient.userID);
         if (!patientsIDs.includes(planID)) {
-            return res.status("403").json({message: "Cannot access the register, it is not an associated patient"});
+            return res.status("403").json({message: "Cannot access the plan, it is not an associated patient"});
         }
     }
     next();
