@@ -13,9 +13,9 @@ router.get("", async (req, res) => {
     res.json(data);
 });
 
-router.patch("", async (req, res) => {
+router.patch("", usersMiddlewares.patchUser, async (req, res) => {
     try {
-        console.log("procesamos este de aqui")
+        console.log("procesamos el endpoint de actualizar user")
         const {userID} = req.payload;
         const data = await usersController.update(userID, req.body);
         res.json(data);

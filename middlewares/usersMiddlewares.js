@@ -1,4 +1,5 @@
 
+const {jdyn} = require("../controllers/db");
 
 function postRelation(req, res, next) {
     const {body} = req;
@@ -24,6 +25,53 @@ function postRelation(req, res, next) {
 
 }
 
+async function patchUser(req, res, next) {
+
+    const {body} = req;
+    let invalid = false;
+    const response = {};
+
+    if (body.username && body.username.constructor !== String) {
+        response.username = "String type username must be provided";
+        invalid = true;
+    }
+
+    if (body.email && body.email.constructor !== String) {
+        response.action = `"String type email must be provided"`;
+        invalid = true;
+    } else if (body.email) {
+        if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/.test(body.email)) {
+            response.email = "Invalid email";
+            invalid = true;
+        } else {
+            const filter = {
+                email: body.email
+            }
+            const users = await jdyn.scan("users", ["userID", "email"], filter);
+            if (users.length && !users.map(user => user.userID).includes(req.payload.userID)) {
+                response.email = "Email in use";
+                invalid = true;
+            }
+        }
+    }
+
+    if (body.password && body.password.constructor !== String) {
+        response.username = "String type password must be provided";
+        invalid = true;
+    } else if (body.password && !/^(?=.*[A-Z])(?=.*\d)[\w]{8,}$/.test(body.password)) {
+        response.password = "Invalid password";
+        invalid = true;
+    }
+
+    if (invalid) {
+        return res.status("400").json(response);
+    }
+
+    next();
+
+}
+
 module.exports = {
-    postRelation
+    postRelation,
+    patchUser
 };
