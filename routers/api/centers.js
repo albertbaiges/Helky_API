@@ -9,15 +9,23 @@ const router = express.Router();
 
 
 router.get("/patients", async (req, res) => {
-    const {userID} = req.payload;
-    const data = await centersController.getPatients(userID);
-    res.send(data);
+    try {
+        const {userID} = req.payload;
+        const data = await centersController.getPatients(userID);
+        res.send(data);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
+    }
 });
 
 router.get("/medics", async (req, res) => {
-    const {userID} = req.payload;
-    const data = await centersController.getMedics(userID);
-    res.send(data);
+    try {
+        const {userID} = req.payload;
+        const data = await centersController.getMedics(userID);
+        res.send(data);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
+    }
 });
 
 router.post("/signmedic", authMiddlewares.registerFields ,async (req, res) => {
@@ -27,7 +35,7 @@ router.post("/signmedic", authMiddlewares.registerFields ,async (req, res) => {
         const data = await centersController.registerMedic(userID, medic);
         res.send(data);
     } catch (error) {
-        return res.status(400).json({"Error": error.message});
+        return res.status(500).json({"Error": error.message});
     }
 });
 
