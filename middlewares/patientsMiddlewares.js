@@ -1,5 +1,5 @@
 const { registersController } = require("../controllers");
-
+const axios = require("axios");
 
 function patientPath(req, res, next) {
     console.log("esta intentando acceder", req.payload)
@@ -10,7 +10,7 @@ function patientPath(req, res, next) {
 }
 
 
-function patchPatient(req, res, next) {
+async function patchPatient(req, res, next) {
     const {medicines, disorders} = req.body;
     let invalid = false;
     const response = {};
@@ -19,6 +19,17 @@ function patchPatient(req, res, next) {
         if (medicines.constructor !== Array || !medicines.every(code => code.constructor === String)) {
             response.medicines = "Must be an array of medicine register numbers in string datatype";
             invalid = true;
+        } else {
+            const cimaMedSearcher = "https://cima.aemps.es/cima/rest/medicamento?nregistro=";
+            
+            const promises = medicines.map(medicine => axios.get(cimaMedSearcher+medicine));
+            const responses = await Promise.all(promises);
+            const dataArr = responses.map(response => response.data)
+            console.log("Respuesta de la API", dataArr)
+            if(dataArr.includes("")) {
+                response.medicines = "Unknown medicine register code in the array";
+                invalid = true;
+            }
         }
     }
 
