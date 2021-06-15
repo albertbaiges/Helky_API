@@ -7,30 +7,39 @@ const {patientsMiddlewares, medicsMiddlewares} = require("../../middlewares");
 
 
 router.get("/patients", async (req, res) => {
-    console.log("reached this endpoint")
-    const {userID} = req.payload;
-    const data = await medicsController.getPatients(userID);
-    res.json(data);
+    try {
+        const {userID} = req.payload;
+        const data = await medicsController.getPatients(userID);
+        res.json(data);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
+    }
 });
 
 router.patch("/patients", patientsMiddlewares.patchPatient, medicsMiddlewares.isPatient, async (req, res) => {
-    const {userID, medicines} = req.body;
-    const update = {medicines};
-    const data = await patientsController.update(userID, update);
-    console.log("los datos a devolver son", data)
-    const response = {
-        message: "Successfully updated",
-        data
+    try {
+        const {userID, medicines} = req.body;
+        const update = {medicines};
+        const data = await patientsController.update(userID, update);
+        const response = {
+            message: "Successfully updated",
+            data
+        }
+        res.send(response);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
     }
-    res.send(response);
 });
 
 
 router.get("/centers", async (req, res) => {
-    console.log("ha llegado a este endpoint")
-    const {userID} = req.payload;
-    const data = await medicsController.getCenters(userID);
-    res.json(data);
+    try {
+        const {userID} = req.payload;
+        const data = await medicsController.getCenters(userID);
+        res.json(data);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
+    }
 });
 
 
