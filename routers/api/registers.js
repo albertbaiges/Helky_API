@@ -14,7 +14,7 @@ router.post("", registersMiddlewares.createRegister ,async (req, res) => {
         const data = await registersController.createRegister(userID, family);
         res.json(data);
     } catch (error) {
-        return res.status(400).json({"Error": error.message});   
+        return res.status(500).json({"Error": error.message});   
     }
 });
 
@@ -75,7 +75,7 @@ router.patch("/:registerID/tracking", registersMiddlewares.registerInfo, registe
         const data = await registersController.addTrackingEvent(registerID, event);
         res.json(data);
     } catch (error) {
-        return res.status(400).json({"Error": error.message});   
+        return res.status(500).json({"Error": error.message});   
     }
 });
 
