@@ -28,7 +28,7 @@ router.get("/medics", async (req, res) => {
     }
 });
 
-router.post("/signmedic", authMiddlewares.registerFields ,async (req, res) => {
+router.post("/signmedic", authMiddlewares.registerFields, authMiddlewares.isRegistered, async (req, res) => {
     try {
         const {userID} = req.payload;
         const medic = req.body;

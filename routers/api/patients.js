@@ -11,11 +11,7 @@ router.patch("", patientsMiddlewares.patchPatient, async (req, res) => {
         const {disorders, medicines} = req.body;
         const update = {disorders, medicines};
         const data = await patientsController.update(userID, update);
-        const response = {
-            message: "Successfully updated",
-            data
-        }
-        res.send(response);
+        res.send(data);
     } catch (error) {
         return res.status(500).json({"Error": error.message});
     }
@@ -34,10 +30,14 @@ router.get("/disorders", async (req, res) => {
 });
 
 router.get("/medicines", async (req, res) => {
-    const {userID} = req.payload;
-    const data = await patientsController.getMedicines(userID);
-    console.log("respondiendo con", data)
-    res.json(data);
+    try {
+        const {userID} = req.payload;
+        const data = await patientsController.getMedicines(userID);
+        console.log("respondiendo con", data)
+        res.json(data);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
+    }
 });
 
 router.get("/medics", async (req, res) => {

@@ -1,4 +1,5 @@
 
+const {jdyn} = require("../controllers/db");
 
 function loginFields(req, res, next) {
     const {body} = req;
@@ -57,9 +58,30 @@ function registerFields(req, res, next) {
     next();
 }
 
+async function isRegistered(req, res, next) {
+    const {email} = req.body;
+    let userID;
+    if(req.payload) {
+        userID = req.payload.userID;
+    }
 
+    if(email) {
+        const filter = {
+            email
+        }
+        const users = await jdyn.scan("users", ["userID", "email"], filter);
+        if (users.length && userID && !users.map(user => user.userID).includes(userID)) {
+            return res.status("400").json({Error: "Email in use"});
+        } else if (users.length && !userID) {
+            return res.status("400").json({Error: "Email in use"});
+        }
+    }
+
+    next();
+}
 
 module.exports = {
     loginFields,
-    registerFields
+    registerFields,
+    isRegistered
 };

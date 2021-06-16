@@ -1,6 +1,6 @@
 
 const {usersController} = require("../../controllers");
-const { usersMiddlewares } = require("../../middlewares");
+const { usersMiddlewares, authMiddlewares } = require("../../middlewares");
 
 const express = require("express");
 const router = express.Router();
@@ -15,7 +15,7 @@ router.get("", async (req, res) => {
     }
 });
 
-router.patch("", usersMiddlewares.patchUser, async (req, res) => {
+router.patch("", usersMiddlewares.patchUser, authMiddlewares.isRegistered,async (req, res) => {
     try {
         const {userID} = req.payload;
         const data = await usersController.update(userID, req.body);

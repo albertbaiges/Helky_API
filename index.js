@@ -1,4 +1,6 @@
 
+require("dotenv").config()
+
 const express = require("express");
 const app = express();
 const cors = require('cors');
@@ -7,7 +9,6 @@ const jwt = require("jsonwebtoken"); // JWT
 const { authController } = require("./controllers")
 const { authMiddlewares } = require("./middlewares")
 
-require("dotenv").config()
 
 
 app.listen(3000, () => console.log("Server listening...."));
@@ -52,7 +53,7 @@ app.post("/login", authMiddlewares.loginFields, async (req, res) => {
     }
 });
 
-app.post("/signup", authMiddlewares.registerFields, async (req, res) => {
+app.post("/signup", authMiddlewares.registerFields, authMiddlewares.isRegistered, async (req, res) => {
     try {
         const user = req.body;
         const data = await authController.registerUser(user);

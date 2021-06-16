@@ -26,16 +26,6 @@ async function getUser(userID) {
 
 async function update(userID, updateValue) {
 
-    if (updateValue.email) {
-        const filter = {
-            email: updateValue.email
-        }
-        const users = await jdyn.scan("users", ["userID", "email"], filter);
-        if (users.length && !users.map(user => user.userID).includes(userID)) {
-            throw new Error("Email already taken")
-        }
-    }
-
     let projection = ["userID", "username", "patients", "medics", "centers", "utype", "disorders"];
     // const userData = await users.getFromUser(userID, projection);
     const userData = await jdyn.getItem("users", {userID}, projection);
@@ -48,10 +38,6 @@ async function update(userID, updateValue) {
     }
     //
     
-
-
-
-
 
     // const response = await users.update(userID, updateValue);
     const response = await jdyn.updateItem("users", {userID}, updateValue)

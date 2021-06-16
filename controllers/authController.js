@@ -32,32 +32,11 @@ async function checkLogin(email, password) {
 }
 
 async function registerUser(user){
-    //Verificar que no haya ya un usuario con este email
-
-    // const query = "email = :email";
-    // const queryParams = {
-    //     ":email": user.email
-    // }
-    // const fields = ["userID", "username", "email"];
-    // const previousUser = await users.queryUser(query, queryParams, fields);
-    const projectionScan = ["userID", "username", "email"];
-    const filter = {
-        email: user.email
-    }
-
-    const previousUser = await jdyn.scan("users", projectionScan, filter);
-    console.log(previousUser)
-
-    if(previousUser.length !== 0) {
-        throw new Error("Email in use")
-    }
-
     const now = Date.now();
     const hex = now.toString(16)
     const userID = md5(hex);
     
     const patient = new Patient(userID, user.username, user.email, user.password);
-    // //PutItem
 
     await jdyn.putItem("users", patient)
 
@@ -100,46 +79,6 @@ async function registerUser(user){
     return signedUser;
 }
 
-
-
-/**
- * Allows cheking if that username is already registered
- * @param {string} username name to be checked 
- * 
- * @returns {Promise} resolves true or false depending if the name is already taken
- * in case of registerd, returns the userId
- */
- async function userIsRegistered(username){
-    console.log("checking if user is registered...")
-    const scan_params = {
-        TableName: "users",
-        FilterExpression: "username = :username",
-
-        ExpressionAttributeValues: {
-            ":username": {S: username}
-        },
-        ProjectionExpression: "userID"
-    }
-
-    const userRegistered = {};
-    try {
-        const scanCommand = new DDB.ScanCommand(scan_params);
-        const response = await client.send(scanCommand);
-        if (response.Items.length !== 0) {
-            userRegistered.userID = response.Items[0].userID["S"];
-            userRegistered.registered = true;
-        } else {
-            console.log("There is nobody registered with that username");
-            userRegistered.registered = false;
-        }
-
-    } catch (err) {
-        console.error("Something went wrong", err);
-    }
-    // Returns the userId to avoid scanning the document again if we need to retrieve the user data
-    // scanning is a heavy task, the less we scan, the better it performs
-    return userRegistered;
-}
 
 
 module.exports = {

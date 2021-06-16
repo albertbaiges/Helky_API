@@ -21,11 +21,7 @@ router.patch("/patients", patientsMiddlewares.patchPatient, medicsMiddlewares.is
         const {userID, medicines} = req.body;
         const update = {medicines};
         const data = await patientsController.update(userID, update);
-        const response = {
-            message: "Successfully updated",
-            data
-        }
-        res.send(response);
+        res.send(data);
     } catch (error) {
         return res.status(500).json({"Error": error.message});
     }

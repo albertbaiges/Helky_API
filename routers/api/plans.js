@@ -72,8 +72,8 @@ router.get("/:planID/medicines", plansMiddlewares.planInfo, async (req, res) => 
 
 router.patch("/:planID/medicines", plansMiddlewares.planInfo, plansMiddlewares.patchMedicines, async (req, res) => {
     try{
-    const {planID} = req.params;
-    const body = req.body;
+        const {planID} = req.params;
+        const body = req.body;
         const data = await plansController.updateMedicines(planID, body);
         res.json({data});
     } catch(error) {

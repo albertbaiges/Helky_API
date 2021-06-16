@@ -19,20 +19,6 @@ function getMedics(userID) {
 }
 
 async function registerMedic(centerID, medic) {
-    
-    //Verificar que no haya ya un usuario con este email
-
-    const projectionScan = ["userID", "username", "email"];
-    const filter = {
-        email: medic.email
-    }
-    console.log("filtro", filter)
-    const previousUser = await jdyn.scan("users", projectionScan, filter);
-    console.log(previousUser)
-    
-    if(previousUser.length !== 0) {
-        throw new Error("Email in use")
-    }
 
     const now = Date.now();
     const hex = now.toString(16)
