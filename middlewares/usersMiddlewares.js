@@ -39,20 +39,9 @@ async function patchUser(req, res, next) {
     if (body.email && body.email.constructor !== String) {
         response.action = `"String type email must be provided"`;
         invalid = true;
-    } else if (body.email) {
-        if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/.test(body.email)) {
-            response.email = "Invalid email";
-            invalid = true;
-        } else {
-            const filter = {
-                email: body.email
-            }
-            const users = await jdyn.scan("users", ["userID", "email"], filter);
-            if (users.length && !users.map(user => user.userID).includes(req.payload.userID)) {
-                response.email = "Email in use";
-                invalid = true;
-            }
-        }
+    } else if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/.test(body.email)) {
+        response.email = "Invalid email";
+        invalid = true;
     }
 
     if (body.password && body.password.constructor !== String) {
