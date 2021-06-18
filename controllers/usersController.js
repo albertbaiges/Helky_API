@@ -50,7 +50,7 @@ async function update(userID, updateValue) {
         const data = await jdyn.getItem("users", {userID}, projection);
         const planUpdate = {
             patient: {
-                patientID: data.userID,
+                userID: data.userID,
                 username: data.username,
                 email: data.email
             }

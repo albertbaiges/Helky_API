@@ -18,8 +18,8 @@ router.get("/patients", async (req, res) => {
 
 router.patch("/patients", patientsMiddlewares.patchPatient, medicsMiddlewares.isPatient, async (req, res) => {
     try {
-        const {userID, medicines} = req.body;
-        const update = {medicines};
+        const {userID, medicines, disorders} = req.body;
+        const update = {medicines, disorders};
         const data = await patientsController.update(userID, update);
         res.send(data);
     } catch (error) {

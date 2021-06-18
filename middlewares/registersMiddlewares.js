@@ -3,7 +3,11 @@ const { registersController, medicsController, centersController, patientsContro
 
 async function registerInfo(req, res, next) {
     const {registerID} = req.params;
-    const {patient: registerPatient} = await registersController.getRegisterPatient(registerID);
+    const register = await registersController.getRegisterPatient(registerID);
+    if(!register) {
+        return res.status("400").json({Error: "Register not found"});
+    }
+    const registerPatient = register.patient;
     if (req.payload.utype === "patient" && registerPatient.userID !== req.payload.userID) {
         return res.status("403").json({message: "Cannot access registers of other patients"});
     } else if (req.payload.utype === "medic") {
