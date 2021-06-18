@@ -1,27 +1,44 @@
 
 const express = require("express");
 const router = express.Router();
-const {medicsController} = require("../../controllers")
+const {medicsController, patientsController} = require("../../controllers")
+const {patientsMiddlewares, medicsMiddlewares} = require("../../middlewares");
 
 
-router.get("/:medicID/patients", async (req, res) => {
-    console.log("reached this endpoint")
-    const {medicID} = req.params;
-    const data = await medicsController.getPatients(medicID);
-    res.json(data);
+
+router.get("/patients", async (req, res) => {
+    try {
+        const {userID} = req.payload;
+        const data = await medicsController.getPatients(userID);
+        res.json(data);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
+    }
+});
+
+router.patch("/patients", patientsMiddlewares.patchPatient, medicsMiddlewares.isPatient, async (req, res) => {
+    try {
+        const {userID, medicines, disorders} = req.body;
+        const update = {medicines, disorders};
+        const data = await patientsController.update(userID, update);
+        res.send(data);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
+    }
 });
 
 
-// router.patch("/:medicID/patients", async (req, res) => {
-//     const {userID, disorders, medicines} = req.body;
-//     const update = {disorders, medicines};
-//     const data = await patientsController.update(userID, update);
-//     console.log("los datos a devolver son", data)
-//     const response = {
-//         message: "Successfully updated",
-//         data
-//     }
-//     res.send(response);
-// });
+router.get("/centers", async (req, res) => {
+    try {
+        const {userID} = req.payload;
+        const data = await medicsController.getCenters(userID);
+        res.json(data);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
+    }
+});
+
+
+
 
 module.exports = router;

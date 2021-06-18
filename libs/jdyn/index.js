@@ -28,7 +28,6 @@ class JDyn {
     }
 
     async getItem(tableName, key, projectionArray) {
-        //console.log("entramos a este get")
         try {
             const keyMarsh = this.Converter.marshall(key);
             let {projectionExpression, expressionAttributeNames} = this._buildProjection(projectionArray);
@@ -111,13 +110,12 @@ class JDyn {
                 ReturnValues: "UPDATED_NEW"
             }
 
-            //console.log("input", input)
+            console.log("input", input)
         
         
             if(updateNames && Object.keys(updateNames).length !== 0) {
                 input.ExpressionAttributeNames = updateNames;
             }
-        
             const response = await this._updateItem(input);
             return response;
         } catch (err) {
@@ -161,24 +159,43 @@ class JDyn {
         }
     }
 
-    async scan(tableName, projectionArr, filter) {
+    async scan(tableName, projectionArr, filter, wildcard) {
+
+        console.log(tableName, projectionArr, filter, wildcard)
         let {projectionExpression, expressionAttributeNames} = this._buildProjection(projectionArr);
         const { expressionArr, attributeNames, attributeValues } = this._buildInputs(filter);
         
-        const filterValuesMarsh = this.Converter.marshall(attributeValues);
-        const wildcardFormat = expressionArr.map(filterExpression => {
-            const formated = filterExpression.replace("=", ",");
-            return `contains(${formated})`;
-        });
-        const wildcardData = wildcardFormat.join(" AND ");
+        let filterValuesMarsh = this.Converter.marshall(attributeValues);
+
+        let filterExpression;
+        if (wildcard) {
+            const wildcardFormat = expressionArr.map(filterExpression => {
+                const formated = filterExpression.replace("=", ",");
+                return `contains(${formated})`;
+            });
+            filterExpression = wildcardFormat.join(" AND ");
+        } else {
+            filterExpression = expressionArr.join(" AND ");
+        }
+
+        if(!filterExpression) {
+            filterExpression = undefined;
+        } 
+
+        if(Object.keys(filterValuesMarsh).length === 0) {
+            filterValuesMarsh = undefined;
+        }
 
         const input = {
             TableName: tableName,
             ProjectionExpression: projectionExpression,
-            FilterExpression: wildcardData,
+            FilterExpression: filterExpression,
             ExpressionAttributeValues: filterValuesMarsh
         }
+
+        console.log("input", input)
     
+
         if (Object.keys(expressionAttributeNames).length !== 0) {
             input.ExpressionAttributeNames = expressionAttributeNames
         }
@@ -202,8 +219,7 @@ class JDyn {
         const attributeNames = {};
         const attributeValues = {};
         for (const key in attributes) {
-            const expKey = (isNaN(key) || isNaN(key[0])) ? key : "#n" + key;
-            // console.log("miramos diferencias", expKey, key)
+            const expKey = (isNaN(key[0])) ? key : "#n" + key;
             if (expKey !== key) {
                 // console.log("eran diferentes", expKey, key)
                 attributeNames[expKey] = key;

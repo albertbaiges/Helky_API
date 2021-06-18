@@ -1,19 +1,28 @@
 
 
 const md5 = require("md5");
-const {registers, Converter, users, jdyn} = require("./db");
+const {jdyn} = require("./db");
 
 let lastRegisterID = 1;
 
 function getSupported() {
-    return ["Diabetes", "High Blood Preassure"];
+    return ["diabetes", "blood pressure"];
+}
+
+async function getRegisterPatient(registerID) {
+    const projection = ["patient"];
+    try {
+        const key = {registerID};
+        const data = jdyn.getItem("registers", key, projection);
+        return data;
+    } catch (err) {
+        throw err;
+    }
 }
 
 async function getRegister(registerID) {
-    const projection = ["registerID", "disorder", "patient"];
-    console.log("procesando este")
+    const projection = ["registerID", "disorder", "disorderFamily", "patient"];
     try {
-        // const data = await registers.getFromRegister(registerID, projection);
         const key = {registerID};
         const data = jdyn.getItem("registers", key, projection);
         return data;
@@ -46,8 +55,8 @@ async function createRegister(userID, family) {
 
     const item = {
         registerID,
-        disorder: disorderInfo.family,
-        case: disorderInfo.type,
+        disorderFamily: disorderInfo.family,
+        disorder: disorderInfo.type,
         patient,
         tracking: { }
     }
@@ -104,7 +113,7 @@ async function getTracking(registerID, month, year) {
         year = date.getFullYear();
     }
 
-    const projection = [`tracking.${year}.${month}`, "patient"];
+    const projection = [`tracking.${year}.${month}`, "patient", "disorder", "disorderFamily"];
     // const data = await registers.get(registerID, projection);
     const key = {registerID};
     const data = jdyn.getItem("registers", key, projection)
@@ -124,12 +133,12 @@ async function addTrackingEvent(registerID, event) {
     const tracking = `tracking.${year}.${month}.${day}`;
     let projection = ["registerID", "patient", tracking];
 
-    const data = await registers.get(registerID, projection);
+    const data = await jdyn.getItem("registers", {registerID}, projection);
 
     let aux = 3;
     while(!data.tracking) {
         projection = [tracking.split(".").slice(0, aux).join(".")];
-        const temp = await registers.get(registerID, projection);
+        const temp = await jdyn.getItem("registers", {registerID}, projection);
         data.tracking = temp.tracking;
         aux--;
     }
@@ -162,10 +171,6 @@ async function addTrackingEvent(registerID, event) {
         }
     
     
-    // If we do not have anything:
-        // PutItem info as new month and add month timestamp on the shoot
-        // console.log("update", update.tracking[year][month])
-        // response = await registers.update(registerID, update, false);
         const key = {registerID};
         response = await jdyn.updateItem("registers", key, update);
     } else {
@@ -227,6 +232,7 @@ async function addTrackingEvent(registerID, event) {
 
 module.exports = {
     getSupported,
+    getRegisterPatient,
     getRegister,
     getTracking, 
     createRegister,

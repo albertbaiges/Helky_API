@@ -1,4 +1,4 @@
-const { users, jdyn } = require("./db");
+const { jdyn } = require("./db");
 
 async function getUsers(values) {
     const filter = {};
@@ -16,7 +16,8 @@ async function getUsers(values) {
     console.log("filtro", filter)
     // const data = users.getUsers(filter);
     const projection = ["userID", "username", "email", "utype"]
-    const data = jdyn.scan("users", projection, filter);
+    const data = await jdyn.scan("users", projection, filter, true);
+    console.log("datos a retornar", data)
     return data;
 }
 

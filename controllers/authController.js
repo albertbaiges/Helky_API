@@ -1,23 +1,20 @@
 
 
-const { response } = require("express");
 const crypto = require("../utils/cryptography");
-const {users, jdyn} = require("./db");
+const {jdyn} = require("./db");
 const { Patient } = require("../models");
-
-/***************/
-let lastId = 1; // For now it must be manually updated everytime the app is openened
-/**************/
+const md5 = require("md5");
 
 
-async function checkLogin(username, password) {
+async function checkLogin(email, password) {
     const response = {status: -1};
-    const query = "username = :username";
-    const queryParams = {
-        ":username": username
+
+    const filter = {
+        email
     }
-    const fields = ["userID", "username", "password", "salt", "utype"];
-    const data = await users.queryUser(query, queryParams, fields);
+
+    const projection = ["userID", "username", "password", "salt", "utype"];
+    const data = await jdyn.scan("users", projection, filter);
     if (data.length) { // Check if there is any data (implies there is a match for user)
         const userData = data[0]; //There can only be one, queried field is unique
         if (crypto.encrypt(password, userData.salt) === userData.password) {
@@ -35,33 +32,13 @@ async function checkLogin(username, password) {
 }
 
 async function registerUser(user){
-
-    //Verificar que no haya ya un usuario con este email
-
-    // const query = "email = :email";
-    // const queryParams = {
-    //     ":email": user.email
-    // }
-    // const fields = ["userID", "username", "email"];
-    // const previousUser = await users.queryUser(query, queryParams, fields);
-    const projectionScan = ["userID", "username", "email"];
-    const filter = {
-        email: user.email
-    }
-
-    const previousUser = await jdyn.scan("users", projectionScan, filter);
-    console.log(previousUser)
-
-    if(previousUser.length !== 0) {
-        throw new Error("Email in use")
-    }
-
-    const userID = (Date.now()).toString(16);
+    const now = Date.now();
+    const hex = now.toString(16)
+    const userID = md5(hex);
     
     const patient = new Patient(userID, user.username, user.email, user.password);
-    // //PutItem
 
-    await users.put(patient);
+    await jdyn.putItem("users", patient)
 
     const projection = ["userID", "username", "email", "utype"];
     
@@ -85,9 +62,11 @@ async function registerUser(user){
         plan.weekdays[day] = {
             day,
             activities: {},
-            breakfast: {},
-            dinner: {},
-            lunch: {},
+            meals: {
+                breakfast: {},
+                dinner: {},
+                lunch: {},
+            },
             medicines: []
         }
     }
@@ -100,46 +79,6 @@ async function registerUser(user){
     return signedUser;
 }
 
-
-
-/**
- * Allows cheking if that username is already registered
- * @param {string} username name to be checked 
- * 
- * @returns {Promise} resolves true or false depending if the name is already taken
- * in case of registerd, returns the userId
- */
- async function userIsRegistered(username){
-    console.log("checking if user is registered...")
-    const scan_params = {
-        TableName: "users",
-        FilterExpression: "username = :username",
-
-        ExpressionAttributeValues: {
-            ":username": {S: username}
-        },
-        ProjectionExpression: "userID"
-    }
-
-    const userRegistered = {};
-    try {
-        const scanCommand = new DDB.ScanCommand(scan_params);
-        const response = await client.send(scanCommand);
-        if (response.Items.length !== 0) {
-            userRegistered.userID = response.Items[0].userID["S"];
-            userRegistered.registered = true;
-        } else {
-            console.log("There is nobody registered with that username");
-            userRegistered.registered = false;
-        }
-
-    } catch (err) {
-        console.error("Something went wrong", err);
-    }
-    // Returns the userId to avoid scanning the document again if we need to retrieve the user data
-    // scanning is a heavy task, the less we scan, the better it performs
-    return userRegistered;
-}
 
 
 module.exports = {

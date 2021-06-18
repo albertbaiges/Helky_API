@@ -1,7 +1,7 @@
 
 const jwt = require("jsonwebtoken"); // JWT
 const {patients, registers, plans, medics, users, centers, searches} = require("./api"); //Routers
-const {medicsMiddlewares, centersMiddlewares} = require("../middlewares");
+const {patientsMiddlewares, medicsMiddlewares, centersMiddlewares} = require("../middlewares");
 const express = require("express");
 const router = express.Router();
 
@@ -14,26 +14,27 @@ function authenticateJWT(req, res, next) {
     let token;
     if (header) {
         token = header.split(" ")[1];
-        console.log("Token recibido", token)
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, payload) => {
             if (err) {
-                return res.sendStatus("403");
+                return res.status(403).json({JWT: "Invalid JWT"});
             }
             req.payload = payload;
             next();
         });
     } else {
-        return res.sendStatus("401")
+        return res.status(401).json({JWT: "Bearer token authorization must be provided"})
     }
 }
 
 
-router.use("/patients", patients);
+router.use("/patient", patientsMiddlewares.patientPath, patients);
 router.use("/registers", registers);
 router.use("/plans", plans);
-router.use("/medics", medicsMiddlewares.medicPath, medics);
-router.use("/users", users);
-router.use("/centers", centersMiddlewares.centerPath, centers);
+router.use("/medic", medicsMiddlewares.medicPath, medics);
+router.use("/user", users);
+router.use("/center", centersMiddlewares.centerPath, centers);
 router.use("/search", searches);
 
 module.exports = router;
+
+

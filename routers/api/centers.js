@@ -2,32 +2,40 @@
 
 const express = require("express");
 const { centersController } = require("../../controllers");
-const { centersMiddlewares } = require("../../middlewares")
+const { centersMiddlewares, authMiddlewares } = require("../../middlewares")
 
 
 const router = express.Router();
 
 
-router.get("/:centerID/patients", async (req, res) => {
-    const {centerID} = req.params;
-    const data = await centersController.getPatients(centerID);
-    res.send(data);
-});
-
-router.get("/:centerID/medics", async (req, res) => {
-    const {centerID} = req.params;
-    const data = await centersController.getMedics(centerID);
-    res.send(data);
-});
-
-router.post("/:centerID/signmedic", centersMiddlewares.signMedicFields ,async (req, res) => {
+router.get("/patients", async (req, res) => {
     try {
-        const {centerID} = req.params;
-        const medic = req.body;
-        const data = await centersController.registerMedic(centerID, medic);
+        const {userID} = req.payload;
+        const data = await centersController.getPatients(userID);
         res.send(data);
     } catch (error) {
-        return res.status(400).json({"Error": error.message});
+        return res.status(500).json({"Error": error.message});
+    }
+});
+
+router.get("/medics", async (req, res) => {
+    try {
+        const {userID} = req.payload;
+        const data = await centersController.getMedics(userID);
+        res.send(data);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
+    }
+});
+
+router.post("/signmedic", authMiddlewares.registerFields, authMiddlewares.isRegistered, async (req, res) => {
+    try {
+        const {userID} = req.payload;
+        const medic = req.body;
+        const data = await centersController.registerMedic(userID, medic);
+        res.send(data);
+    } catch (error) {
+        return res.status(500).json({"Error": error.message});
     }
 });
 
